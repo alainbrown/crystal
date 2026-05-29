@@ -4,19 +4,19 @@ import { isResponse } from '@/worker/protocol'
 export type ResponseListener = (msg: ResponseMessage) => void
 
 export class WorkerClient {
-  private worker: Worker
+  private port: chrome.runtime.Port | null = null
   private listeners = new Set<ResponseListener>()
 
-  constructor() {
-    this.worker = new Worker(new URL('../worker/llm.worker.ts', import.meta.url), {
-      type: 'module',
-      name: 'crystal-llm',
+  private connect(): chrome.runtime.Port {
+    const port = chrome.runtime.connect({ name: 'crystal-llm' })
+    port.onMessage.addListener((data: unknown) => {
+      if (isResponse(data)) for (const l of this.listeners) l(data)
     })
-    this.worker.onmessage = (e: MessageEvent) => {
-      if (isResponse(e.data)) {
-        for (const l of this.listeners) l(e.data)
-      }
-    }
+    port.onDisconnect.addListener(() => {
+      if (this.port === port) this.port = null
+    })
+    this.port = port
+    return port
   }
 
   on(cb: ResponseListener): () => void {
@@ -25,11 +25,12 @@ export class WorkerClient {
   }
 
   send(msg: RequestMessage): void {
-    this.worker.postMessage(msg)
+    ;(this.port ?? this.connect()).postMessage(msg)
   }
 
   terminate(): void {
-    this.worker.terminate()
+    this.port?.disconnect()
+    this.port = null
     this.listeners.clear()
   }
 }

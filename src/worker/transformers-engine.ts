@@ -20,15 +20,8 @@ import type {
   LoadCallbacks,
 } from './engine'
 
-import ortWasm from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url'
-import ortMjs from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url'
-
 env.allowLocalModels = false
 env.useBrowserCache = true
-if (env.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.wasmPaths = { wasm: ortWasm, mjs: ortMjs }
-  env.backends.onnx.wasm.proxy = false
-}
 
 type DType = Record<string, Precision>
 
@@ -97,11 +90,9 @@ export class TransformersEngine implements LLMEngine {
     this.stopping.reset()
 
     const processor = this.processor as unknown as {
+      (text: string): Promise<Record<string, unknown>>
       tokenizer: ConstructorParameters<typeof TextStreamer>[0]
-      apply_chat_template: (
-        messages: ModelMessage[],
-        opts: Record<string, unknown>,
-      ) => Promise<Record<string, unknown>>
+      apply_chat_template: (messages: ModelMessage[], opts: Record<string, unknown>) => string
     }
 
     let raw = ''
@@ -131,11 +122,11 @@ export class TransformersEngine implements LLMEngine {
       },
     })
 
-    const inputs = await processor.apply_chat_template(messages, {
+    const prompt = processor.apply_chat_template(messages, {
       add_generation_prompt: true,
-      return_dict: true,
       enable_thinking: params.reasoning,
     })
+    const inputs = await processor(prompt)
 
     await this.model.generate({
       ...inputs,
