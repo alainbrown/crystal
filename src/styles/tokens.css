@@ -1,0 +1,144 @@
+/* Crystal — shared neumorphic design tokens & primitives.
+   Lifted from the approved mocks. Themed via [data-theme]. */
+
+:root,
+[data-theme='calm'] {
+  --bg: #e8ecf3;
+  --bg2: #eef1f7;
+  --light: #ffffff;
+  --shadow: #c5cbd8;
+  --ink: #4a5168;
+  --ink-soft: #8a91a6;
+  --accent: #7c83ff;
+  --accent2: #9bd0c4;
+  --lilac: #b7a6f0;
+  --warm: #e87b8d;
+  --panel-grad: linear-gradient(160deg, var(--bg2), var(--bg));
+  --soft-grad: linear-gradient(145deg, #f3f6fb, #dde2ec);
+  --seg-grad: linear-gradient(145deg, #f3f6fb, #e4e8f1);
+}
+
+[data-theme='light'] {
+  --bg: #f3f5f9;
+  --bg2: #ffffff;
+  --light: #ffffff;
+  --shadow: #d7dce6;
+  --ink: #2c3247;
+  --ink-soft: #7b8298;
+  --accent: #6b72f0;
+  --accent2: #84c7b8;
+  --lilac: #a99cf0;
+  --warm: #e06a7e;
+  --panel-grad: linear-gradient(160deg, #ffffff, #eef1f7);
+  --soft-grad: linear-gradient(145deg, #ffffff, #e7ebf3);
+  --seg-grad: linear-gradient(145deg, #ffffff, #e9edf4);
+}
+
+[data-theme='dark'] {
+  --bg: #232735;
+  --bg2: #2a2f40;
+  --light: #313749;
+  --shadow: #171a24;
+  --ink: #dfe3ee;
+  --ink-soft: #9aa1b5;
+  --accent: #9aa0ff;
+  --accent2: #8fd0c1;
+  --lilac: #b7a6f0;
+  --warm: #f08aa0;
+  --panel-grad: linear-gradient(160deg, #2a2f40, #232735);
+  --soft-grad: linear-gradient(145deg, #2d3243, #20242f);
+  --seg-grad: linear-gradient(145deg, #2f3446, #262b39);
+}
+
+/* text size scale */
+[data-size='small'] { --fs: 12px; }
+[data-size='medium'] { --fs: 13px; }
+[data-size='large'] { --fs: 15px; }
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+html, body { height: 100%; }
+body {
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+}
+
+.soft {
+  border-radius: 18px;
+  background: var(--soft-grad);
+  box-shadow: 6px 6px 14px var(--shadow), -6px -6px 14px var(--light);
+}
+.inset {
+  border-radius: 16px;
+  background: var(--bg);
+  box-shadow: inset 5px 5px 10px var(--shadow), inset -5px -5px 10px var(--light);
+}
+
+/* segmented control */
+.seg {
+  flex: 1;
+  text-align: center;
+  border: 0;
+  cursor: pointer;
+  border-radius: 12px;
+  font-family: inherit;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: transparent;
+  transition: 0.2s;
+}
+.seg small { display: block; font-size: 9px; font-weight: 600; opacity: 0.8; margin-top: 1px; }
+.seg.on {
+  color: var(--accent);
+  background: var(--seg-grad);
+  box-shadow: 3px 3px 7px var(--shadow), -3px -3px 7px var(--light);
+}
+
+/* toggle switch */
+.switch {
+  width: 48px;
+  height: 27px;
+  border: 0;
+  padding: 0;
+  border-radius: 20px;
+  flex: none;
+  position: relative;
+  cursor: pointer;
+  background: var(--bg);
+  box-shadow: inset 3px 3px 6px var(--shadow), inset -3px -3px 6px var(--light);
+}
+.switch .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fdfdff, #e3e8f1);
+  box-shadow: 2px 2px 5px var(--shadow), -2px -2px 5px var(--light);
+  transition: 0.25s;
+}
+.switch.on {
+  background: linear-gradient(145deg, #8b91ff, #6f76f5);
+  box-shadow: inset 2px 2px 5px rgba(80, 86, 160, 0.5), inset -2px -2px 5px rgba(180, 185, 255, 0.4);
+}
+.switch.on .knob { left: 24px; background: #fff; box-shadow: 0 2px 5px rgba(80, 90, 140, 0.45); }
+
+/* breathing privacy dot */
+.ring {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(155, 208, 196, 0.3);
+  animation: breathe 3s ease-in-out infinite;
+}
+@keyframes breathe { 50% { box-shadow: 0 0 0 6px rgba(155, 208, 196, 0.15); } }
+
+/* scrollbars */
+.scroll::-webkit-scrollbar { width: 7px; }
+.scroll::-webkit-scrollbar-thumb { background: #cfd5e2; border-radius: 9px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }

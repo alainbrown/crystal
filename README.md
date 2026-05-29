@@ -5,88 +5,130 @@ LLM runs **entirely in the browser via WebGPU** — no server, no API key, no da
 leaves the machine. Powered by [🤗 transformers.js](https://github.com/huggingface/transformers.js)
 running [Qwen3.5](https://huggingface.co/onnx-community) (ONNX-OPT, q4).
 
-Built as a Manifest V3 extension with a side-panel chat and a full-tab settings page.
+Built as a Manifest V3 extension: a chat **side panel** and a full-tab **settings** page.
 
-## Status
+## Quick start
 
-Design phase complete. Two screens are mocked and approved (see [`mocks/`](./mocks)):
+```bash
+pnpm install
+pnpm build           # outputs the unpacked extension to dist/
+```
 
-- **Chat panel** — 384px side panel (`mocks/mock-2-neumorphic.html`)
-- **Settings** — full browser tab / options page (`mocks/mock-2-settings.html`)
-- **Gallery** — `mocks/index.html` (open this to compare both)
+Then load it in Chrome:
 
-Visual direction: **soft neumorphic ("Crystal")** — calm light palette, Nunito, layered
-soft/inset shadows, lilac-indigo accent. Privacy framed as comfort.
+1. Open `chrome://extensions`
+2. Toggle **Developer mode** (top right)
+3. Click **Load unpacked** and select the `dist/` folder
+4. Click the Crystal toolbar icon to open the side panel
 
-Extension code is **not yet scaffolded** — the recommended stack and build plan are below.
+On first use, Crystal downloads the model weights (~480 MB for the default 0.8B) from the
+Hugging Face Hub. They're cached by the browser, so subsequent loads are fast. Generation
+runs on your GPU via WebGPU.
 
-## Recommended stack
+> **Requires WebGPU.** Recent Chrome/Edge on a machine with a supported GPU. If WebGPU is
+> unavailable, enable **CPU fallback** in Settings → Compute (much slower).
 
-| Concern | Choice | Why |
-| --- | --- | --- |
-| Build | **Vite + [`@crxjs/vite-plugin`](https://crxjs.dev/vite-plugin)** | CRXJS handles MV3: multiple HTML entries (panel + options), the background service worker, manifest generation, and HMR inside the extension. Vanilla Vite can't. |
-| Language | **TypeScript** | Types for transformers.js and the worker↔UI message protocol. |
-| UI | **React** | Structure for streaming-token state and settings forms. |
-| State | **Zustand** | Lightweight; no Redux needed. |
-| Inference | **Web Worker** | Model load + `generate()` off the main thread so the panel never freezes (running inference on the main thread locks up the UI). Tokens streamed back via `postMessage`. |
-| LLM | **`@huggingface/transformers@4.2.0`** | `Qwen3_5ForConditionalGeneration` + `AutoProcessor`, `device: "webgpu"`, dtype q4. |
-| Styling | **Plain CSS (CSS variables / modules)** | Neumorphism relies on bespoke layered `box-shadow`s — awkward in Tailwind. Lift the mock CSS directly. |
-| Unit tests | **Vitest** | The testable logic: worker message protocol, chat-history reducer, settings persistence, prompt formatting. |
-| E2E tests | **Playwright** | UI flows with the unpacked extension loaded, running against a **mocked model** (real WebGPU inference is impractical in CI — large downloads, GPU, flaky headless WebGPU). |
-| Package manager | **pnpm** | |
+### Develop
 
-One-liner:
+```bash
+pnpm dev             # Vite + CRXJS with HMR
+```
 
-> **Vite + CRXJS + TypeScript + React + Zustand + a Web Worker (transformers.js/WebGPU) + plain CSS; Vitest for logic, Playwright for mocked-model UI flows.**
+Load the generated `dist/` as above; CRXJS hot-reloads the panel and options page on save.
+
+## How it works
+
+- **UI** — React, with the two screens ported from the approved neumorphic mocks. Styling
+  is plain CSS (design tokens in `src/styles/tokens.css`); the Nunito font is bundled
+  locally via `@fontsource/nunito` (no remote fonts).
+- **Inference runs in a Web Worker** (`src/worker/llm.worker.ts`) so the panel never
+  freezes during load or generation. The worker speaks a typed message protocol
+  (`src/worker/protocol.ts`) and serializes load → generate, while `interrupt` bypasses the
+  queue to stop a run.
+- **Engine abstraction** (`src/worker/engine.ts`) has two implementations:
+  - `TransformersEngine` — the real one (Qwen3.5 on WebGPU via transformers.js).
+  - `MockEngine` — deterministic, no network/GPU; drives tests and the e2e build.
+  Selected at build time via `VITE_LLM_ENGINE` (`mock` → MockEngine).
+- **State** — a Zustand store (`src/store/chat-store.ts`) owns the worker and turns streamed
+  tokens into chat messages; settings persist to `chrome.storage` and sync across surfaces.
+
+## Manifest V3 + WebGPU notes
+
+MV3 **forbids remote `<script>`/ESM imports on extension pages**, so everything that is
+*code* must be served from the extension itself:
+
+- **The transformers.js library and the onnxruntime-web WASM runtime are bundled locally.**
+  `onnxruntime-web` is a direct dependency (pinned to the version transformers.js uses); the
+  engine imports its WASM/glue as Vite assets and overrides ORT's default remote-CDN fetch:
+
+  ```ts
+  import ortWasm from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url'
+  import ortMjs  from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url'
+  env.backends.onnx.wasm.wasmPaths = { wasm: ortWasm, mjs: ortMjs }
+  ```
+
+  The jsep build is a superset (WebGPU *and* WASM-CPU), so this one pair covers both the GPU
+  path and the CPU-fallback setting. The files are emitted into `dist/assets/` and loaded
+  same-origin by the worker.
+- **The model weights are *data*** — fetched at runtime from the HF Hub (allowed via
+  `connect-src` + `host_permissions`) and cached by the browser.
+- CSP: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self'`.
+
+Distribution: unpacked / dev install. The remote-weight fetch is fine for self-distribution;
+revisit before any Chrome Web Store submission.
 
 ## Models
 
-Selectable in-app (default **0.8B**); weights fetched from the HF Hub on first use and
-browser-cached:
+Selectable in Settings (default **0.8B**):
 
-- `onnx-community/Qwen3.5-0.8B-ONNX-OPT` — ~480 MB
-- `onnx-community/Qwen3.5-2B-ONNX-OPT` — ~1.3 GB
-- `onnx-community/Qwen3.5-4B-ONNX-OPT` — ~2.6 GB
+| Model | Size |
+| --- | --- |
+| `onnx-community/Qwen3.5-0.8B-ONNX-OPT` | ~480 MB |
+| `onnx-community/Qwen3.5-2B-ONNX-OPT` | ~1.3 GB |
+| `onnx-community/Qwen3.5-4B-ONNX-OPT` | ~2.6 GB |
 
-## Manifest V3 constraints (important)
+## Testing
 
-MV3 **forbids remote `<script>`/ESM imports on extension pages**. So loading the library
-from a CDN (`import ... from "https://cdn.jsdelivr.net/..."`) will not work. The plan
-accounts for this:
-
-- **Library is code → must be `'self'`.** `@huggingface/transformers` is bundled locally
-  through Vite. The onnxruntime-web `.wasm`/`.mjs` files are copied into the package
-  (`vite-plugin-static-copy`) and `env.backends.onnx.wasm.wasmPaths` is set to
-  `chrome.runtime.getURL(...)`.
-- **Weights are data → allowed remotely.** Model files are fetched at runtime via the HF
-  Hub, permitted through `connect-src` + `host_permissions`, and cached by the browser.
-- CSP for extension pages: `script-src 'self' 'wasm-unsafe-eval'; object-src 'self'`.
-
-Distribution: unpacked / dev install for now (the remote-weight fetch is fine for
-self-distribution; revisit before any Chrome Web Store submission).
-
-## Build plan
-
-1. **Scaffold** — pnpm + Vite/CRXJS/React/TS; manifest with the **side panel** (chat) and
-   **options page** (settings) entries + a background service worker that opens the panel.
-2. **Vendor the engine** — install `@huggingface/transformers@4.2.0`, copy ORT wasm
-   locally, wire `wasmPaths` and `connect-src`/`host_permissions` for the HF Hub.
-3. **LLM worker** — stub the worker behind a clean interface (load, generate, stop,
-   progress) so the mocked-model tests have a target; then implement with
-   `Qwen3_5ForConditionalGeneration`, `TextStreamer`, and `InterruptableStoppingCriteria`.
-4. **UI** — port the two mock screens into React components, reusing the mock CSS. Wire
-   model selector (0.8B default / 2B / 4B), download progress, streaming transcript,
-   collapsible reasoning, Send/Stop composer, tokens/sec footer; settings tab persists to
-   `chrome.storage`.
-5. **Tests** — Vitest for logic/protocol; lean Playwright suite against the mocked model.
-
-## Repo layout
-
-```
-mocks/                     approved design mocks (static HTML)
-  index.html               gallery — open to compare both screens
-  mock-2-neumorphic.html   chat panel (384px side panel)
-  mock-2-settings.html     settings (full browser tab)
+```bash
+pnpm test            # Vitest unit tests (chat helpers, settings, engine, store wiring)
+pnpm test:e2e        # builds a mock-engine extension (dist-mock/) and runs Playwright
 ```
 
-(Extension source will land alongside `mocks/` once scaffolded.)
+Unit tests cover the testable logic with no network or GPU. The e2e suite loads the unpacked
+extension with the **mocked model** and drives the real UI (real WebGPU inference is
+impractical in CI). See "Known issues".
+
+## Stack
+
+Vite + [`@crxjs/vite-plugin`](https://crxjs.dev/vite-plugin) + TypeScript + React + Zustand;
+Web Worker inference (transformers.js / onnxruntime-web / WebGPU); plain CSS; Vitest +
+Playwright. Package manager: pnpm.
+
+## Project structure
+
+```
+manifest.config.ts        MV3 manifest (side panel, options, background, CSP)
+vite.config.ts            Vite + CRXJS
+src/
+  background/             service worker (opens the side panel)
+  sidepanel/             chat panel: index.html, App, components, css
+  options/               full-tab settings: index.html, Options, controls, css
+  worker/                llm.worker, protocol, engine + transformers/mock engines
+  store/                 Zustand chat store
+  lib/                   models, chat helpers, settings, worker client
+  hooks/                 useSettings
+  styles/tokens.css      shared neumorphic design tokens
+  assets/                generated diamond icons
+scripts/make-icons.mjs   regenerates the icons
+tests/unit/              Vitest
+tests/e2e/               Playwright (mock build)
+mocks/                   original static design mocks
+```
+
+## Known issues
+
+- The build emits a redundant ~23 MB `asyncify.wasm` that transformers.js references
+  statically; it's never loaded at runtime (we point `wasmPaths` at the jsep build). Harmless
+  dead weight in `dist/`; could be stripped with a small Vite plugin later.
+- The Playwright e2e suite is fully wired, but MV3 service-worker registration under headless
+  Chromium needs more work for the `extensionId` fixture to resolve reliably in CI.
