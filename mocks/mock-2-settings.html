@@ -8,232 +8,242 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root{
-    --bg:#e8ecf3;
-    --bg2:#eef1f7;
-    --light:#ffffff;
-    --shadow:#c5cbd8;
-    --ink:#4a5168;
-    --ink-soft:#8a91a6;
-    --accent:#7c83ff;
-    --accent2:#9bd0c4;
-    --lilac:#b7a6f0;
-    --warm:#e87b8d;
+  /* ---------- THEME TOKENS (shared with the side panel) ---------- */
+  [data-theme='light'] {
+    --bg:#f3f5f9;
+    --bg2:#ffffff;
+    --line:#e7eaf1;
+    --ink:#2c3247;
+    --ink-soft:#828aa0;
+    --accent:#6b72f0;
+    --accent-soft:rgba(107,114,240,.1);
+    --field:#eef1f7;
+    --warm:#e06a7e;
+    --ok:#5fae9c;
+    --page-grad:linear-gradient(170deg,#ffffff,#eef1f7);
+    --card-shadow:0 1px 3px rgba(30,36,55,.06), 0 8px 24px rgba(30,36,55,.05);
   }
+  [data-theme='dark'] {
+    --bg:#1c2030;
+    --bg2:#232838;
+    --line:#2f3548;
+    --ink:#e3e7f2;
+    --ink-soft:#8f97ad;
+    --accent:#9aa0ff;
+    --accent-soft:rgba(154,160,255,.16);
+    --field:#272d3e;
+    --warm:#f08aa0;
+    --ok:#7fc9b8;
+    --page-grad:linear-gradient(170deg,#232838,#1c2030);
+    --card-shadow:0 1px 3px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  }
+
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{
-    min-height:100vh;color:var(--ink);font-family:'Nunito',sans-serif;
-    background:linear-gradient(160deg,var(--bg2),var(--bg)) fixed;
-    padding:0 24px 80px;
+    min-height:100vh;color:var(--ink);font-family:'Nunito',system-ui,sans-serif;
+    background:var(--page-grad) fixed;padding:0 24px 80px;
   }
 
-  .soft{
-    border-radius:20px;
-    background:linear-gradient(145deg,#f3f6fb,#dde2ec);
-    box-shadow:8px 8px 18px var(--shadow), -8px -8px 18px var(--light);
-  }
-  .inset{
-    border-radius:16px;background:var(--bg);
-    box-shadow:inset 5px 5px 10px var(--shadow), inset -5px -5px 10px var(--light);
+  .card{
+    border-radius:18px;background:var(--bg2);
+    border:1px solid var(--line);box-shadow:var(--card-shadow);
   }
 
-  /* TOP BAR */
+  /* TOP BAR — app name + gear, no privacy tagline */
   .topbar{
-    max-width:1040px;margin:0 auto;padding:34px 4px 26px;
-    display:flex;align-items:center;gap:16px;
+    max-width:1040px;margin:0 auto;padding:32px 4px 24px;
+    display:flex;align-items:center;gap:14px;
   }
   .logo{
-    width:54px;height:54px;border-radius:18px;flex:none;
-    display:flex;align-items:center;justify-content:center;font-size:26px;
-    background:linear-gradient(145deg,#f3f6fb,#dde2ec);
-    box-shadow:5px 5px 12px var(--shadow), -5px -5px 12px var(--light);
+    width:46px;height:46px;border-radius:14px;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    background:var(--accent-soft);
   }
-  .logo .gem{filter:drop-shadow(0 0 8px rgba(124,131,255,.4))}
-  .ttl h1{font-size:26px;font-weight:800;letter-spacing:-.4px}
+  .ttl h1{font-size:24px;font-weight:800;letter-spacing:-.4px}
   .ttl p{font-size:13px;font-weight:600;color:var(--ink-soft);margin-top:2px}
-  .privacy{
-    margin-left:auto;font-size:12px;font-weight:700;color:#5f6b8f;
-    padding:10px 16px;border-radius:24px;display:flex;align-items:center;gap:9px;
+  .saved{
+    margin-left:auto;font-size:12px;font-weight:700;color:var(--ink-soft);
+    display:flex;align-items:center;gap:8px;
   }
-  .privacy .ring{
-    width:9px;height:9px;border-radius:50%;background:var(--accent2);
-    box-shadow:0 0 0 3px rgba(155,208,196,.3);animation:breathe 3s ease-in-out infinite;
-  }
-  @keyframes breathe{50%{box-shadow:0 0 0 7px rgba(155,208,196,.12)}}
+  .saved .tick{color:var(--ok);font-size:14px}
 
   /* LAYOUT */
   .layout{
     max-width:1040px;margin:0 auto;
-    display:grid;grid-template-columns:236px 1fr;gap:28px;align-items:start;
+    display:grid;grid-template-columns:224px 1fr;gap:26px;align-items:start;
   }
 
   /* NAV */
-  nav{position:sticky;top:24px;padding:14px;display:flex;flex-direction:column;gap:4px}
+  nav{position:sticky;top:24px;padding:10px;display:flex;flex-direction:column;gap:3px}
   nav a{
     text-decoration:none;color:var(--ink-soft);font-size:13.5px;font-weight:700;
-    padding:12px 14px;border-radius:13px;display:flex;align-items:center;gap:12px;transition:.18s;
+    padding:11px 13px;border-radius:11px;display:flex;align-items:center;gap:11px;transition:.15s;
   }
-  nav a .ic{font-size:16px;width:20px;text-align:center}
-  nav a:hover{color:var(--ink)}
-  nav a.on{
-    color:var(--accent);
-    background:linear-gradient(145deg,#f3f6fb,#e4e8f1);
-    box-shadow:3px 3px 8px var(--shadow), -3px -3px 8px var(--light);
-  }
-  nav .navfoot{margin-top:12px;padding:12px 14px 4px;border-top:1px solid rgba(160,170,195,.2);
-    font-size:11px;font-weight:700;color:var(--ink-soft);display:flex;align-items:center;gap:7px}
-  nav .navfoot .tick{color:var(--accent2)}
+  nav a .ic{font-size:15px;width:18px;text-align:center}
+  nav a:hover{color:var(--ink);background:var(--field)}
+  nav a.on{color:var(--accent);background:var(--accent-soft)}
 
   /* CONTENT */
-  .content{display:flex;flex-direction:column;gap:26px}
-  .section{padding:26px 28px;scroll-margin-top:24px}
-  .sec-head{display:flex;align-items:center;gap:11px;margin-bottom:8px}
-  .sec-head .ic{font-size:19px}
-  .sec-head h2{font-size:18px;font-weight:800;letter-spacing:-.2px}
-  .sec-sub{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:0 0 20px 30px}
+  .content{display:flex;flex-direction:column;gap:22px}
+  .section{padding:24px 26px;scroll-margin-top:24px}
+  .sec-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .sec-head .ic{font-size:18px}
+  .sec-head h2{font-size:17px;font-weight:800;letter-spacing:-.2px}
+  .sec-sub{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin:0 0 18px 28px;line-height:1.45}
 
   /* ROW */
   .row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 2px}
-  .row + .row{border-top:1px solid rgba(160,170,195,.18)}
-  .row .label{font-size:14.5px;font-weight:700}
+  .row + .row{border-top:1px solid var(--line)}
+  .row .label{font-size:14px;font-weight:800}
   .row .desc{font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:3px;line-height:1.45;max-width:440px}
 
+  /* DROPDOWN (model selector) */
+  .dropdown{position:relative;max-width:420px}
+  .dd-btn{
+    width:100%;border:1px solid var(--line);background:var(--bg2);cursor:pointer;
+    border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:11px;
+    font-family:inherit;color:var(--ink);transition:.15s;
+  }
+  .dd-btn:hover{border-color:var(--accent)}
+  .dd-btn .mi{
+    width:30px;height:30px;border-radius:9px;flex:none;font-size:15px;
+    display:flex;align-items:center;justify-content:center;background:var(--accent-soft);
+  }
+  .dd-btn .lbl{flex:1;text-align:left;min-width:0}
+  .dd-btn .lbl b{display:block;font-size:13.5px;font-weight:800}
+  .dd-btn .lbl small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:1px}
+  .dd-btn .chev{font-size:11px;color:var(--ink-soft);transition:.2s;flex:none}
+  .dropdown.open .chev{transform:rotate(180deg)}
+  .dd-menu{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:20;
+    background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+    padding:6px;box-shadow:0 18px 44px rgba(30,36,55,.22);
+    display:none;flex-direction:column;gap:2px;
+  }
+  .dropdown.open .dd-menu{display:flex}
+  .opt{display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;cursor:pointer;transition:.12s}
+  .opt:hover{background:var(--field)}
+  .opt .mi{width:30px;height:30px;border-radius:9px;flex:none;font-size:15px;
+    display:flex;align-items:center;justify-content:center;background:var(--accent-soft)}
+  .opt .lbl{flex:1}
+  .opt .lbl b{display:block;font-size:13.5px;font-weight:800}
+  .opt .lbl small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:1px}
+  .opt .tick{color:var(--accent);font-size:14px;font-weight:800;opacity:0}
+  .opt.on .tick{opacity:1}
+
   /* SEGMENTED */
-  .seg-wrap{padding:6px;display:flex;gap:6px;border-radius:16px}
-  .seg-wrap.tight{max-width:360px}
+  .seg-wrap{display:flex;gap:6px;background:var(--field);padding:5px;border-radius:14px;max-width:420px}
   .seg{
-    flex:1;text-align:center;padding:11px 6px;border-radius:12px;cursor:pointer;
-    font-size:13px;font-weight:700;color:var(--ink-soft);transition:.2s;
+    flex:1;text-align:center;padding:10px 6px;border-radius:10px;cursor:pointer;
+    font-size:12.5px;font-weight:800;color:var(--ink-soft);transition:.15s;
+    display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:transparent;font-family:inherit;
   }
-  .seg small{display:block;font-size:10px;font-weight:600;opacity:.8;margin-top:2px}
-  .seg.on{
-    color:var(--accent);background:linear-gradient(145deg,#f3f6fb,#e4e8f1);
-    box-shadow:3px 3px 7px var(--shadow), -3px -3px 7px var(--light);
-  }
+  .seg .ic{font-size:15px}
+  .seg small{font-size:10px;font-weight:600;opacity:.85}
+  .seg.on{color:var(--accent);background:var(--bg2);box-shadow:0 2px 8px rgba(30,36,55,.12)}
 
   /* TOGGLE */
-  .switch{width:52px;height:30px;border-radius:20px;flex:none;position:relative;cursor:pointer}
-  .switch .knob{
-    position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
-    background:linear-gradient(145deg,#fdfdff,#e3e8f1);
-    box-shadow:2px 2px 5px var(--shadow), -2px -2px 5px var(--light);transition:.25s;
-  }
-  .switch.on{
-    background:linear-gradient(145deg,#8b91ff,#6f76f5);
-    box-shadow:inset 2px 2px 5px rgba(80,86,160,.5), inset -2px -2px 5px rgba(180,185,255,.4);
-  }
-  .switch.on .knob{left:25px;background:#fff;box-shadow:0 2px 5px rgba(80,90,140,.45)}
-  .badge-on{
-    background:linear-gradient(145deg,#8b91ff,#6f76f5);color:#fff;flex:none;
-    font-size:12.5px;font-weight:800;padding:9px 16px;border-radius:13px;
-    box-shadow:3px 3px 8px rgba(111,118,245,.4);
-  }
+  .switch{width:50px;height:29px;border-radius:20px;flex:none;position:relative;cursor:pointer;
+    background:var(--field);border:1px solid var(--line);transition:.2s}
+  .switch .knob{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(30,36,55,.25);transition:.22s}
+  .switch.on{background:var(--accent);border-color:var(--accent)}
+  .switch.on .knob{left:24px}
+  .badge-on{background:var(--accent-soft);color:var(--accent);flex:none;
+    font-size:12.5px;font-weight:800;padding:8px 15px;border-radius:11px}
 
   /* SLIDER */
   .slider-row{padding:16px 2px}
-  .slider-row + .slider-row{border-top:1px solid rgba(160,170,195,.18)}
-  .slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:13px}
-  .slider-top .label{font-size:14.5px;font-weight:700}
-  .slider-top .val{font-size:13.5px;font-weight:800;color:var(--accent)}
-  .track{height:13px;border-radius:9px;padding:2px;position:relative;max-width:540px}
-  .track > i{
-    display:block;height:100%;border-radius:9px;
-    background:linear-gradient(90deg,var(--lilac),var(--accent));
-    box-shadow:0 1px 4px rgba(124,131,255,.5);
-  }
-  .track .pin{
-    position:absolute;top:50%;width:22px;height:22px;border-radius:50%;transform:translate(-50%,-50%);
-    background:linear-gradient(145deg,#fdfdff,#e6eaf3);
-    box-shadow:2px 2px 6px var(--shadow), -2px -2px 6px var(--light);
-  }
+  .slider-row + .slider-row{border-top:1px solid var(--line)}
+  .slider-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .slider-top .label{font-size:14px;font-weight:800}
+  .slider-top .val{font-size:13px;font-weight:800;color:var(--accent)}
+  .track{height:8px;border-radius:9px;position:relative;max-width:540px;background:var(--field)}
+  .track > i{display:block;height:100%;border-radius:9px;background:var(--accent)}
+  .track .pin{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);
+    background:#fff;border:2px solid var(--accent);box-shadow:0 1px 4px rgba(30,36,55,.2)}
 
   /* CACHED MODEL LIST */
-  .mlist{margin-top:18px}
-  .mfile{display:flex;align-items:center;gap:14px;padding:14px 2px}
-  .mfile + .mfile{border-top:1px solid rgba(160,170,195,.18)}
-  .mdot{width:42px;height:42px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px}
-  .mdot.cached{color:var(--accent2);background:rgba(155,208,196,.18)}
-  .mdot.empty{color:var(--ink-soft);background:rgba(138,145,166,.12)}
-  .mfile .mname{font-size:14px;font-weight:700}
+  .mlist{margin-top:8px}
+  .mfile{display:flex;align-items:center;gap:13px;padding:13px 2px}
+  .mfile + .mfile{border-top:1px solid var(--line)}
+  .mdot{width:38px;height:38px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .mdot.cached{color:var(--ok);background:rgba(95,174,156,.16)}
+  .mdot.empty{color:var(--ink-soft);background:var(--field)}
+  .mfile .mname{font-size:13.5px;font-weight:800}
   .mfile .msize{font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-top:2px}
-  .mfile .mact{margin-left:auto;border:0;cursor:pointer;font-size:11.5px;font-weight:800;
-    padding:9px 16px;border-radius:12px;color:var(--ink-soft);
-    background:linear-gradient(145deg,#f3f6fb,#e4e8f1);
-    box-shadow:2px 2px 6px var(--shadow), -2px -2px 6px var(--light);}
-  .mfile .mact.dl{color:var(--accent)}
+  .mfile .mact{margin-left:auto;border:1px solid var(--line);cursor:pointer;font-size:11.5px;font-weight:800;
+    padding:8px 15px;border-radius:10px;color:var(--ink-soft);background:var(--bg2)}
+  .mfile .mact.dl{color:var(--accent);border-color:var(--accent)}
 
   /* ACTION BUTTONS */
-  .btn-soft{
-    border:0;cursor:pointer;margin-top:18px;
-    padding:13px 22px;border-radius:14px;font-family:inherit;font-size:13px;font-weight:800;
-    background:linear-gradient(145deg,#f3f6fb,#e1e6ef);
-    box-shadow:3px 3px 8px var(--shadow), -3px -3px 8px var(--light);
-  }
-  .btn-soft.warm{color:var(--warm)}
+  .btn-soft{border:1px solid var(--line);cursor:pointer;margin-top:16px;
+    padding:12px 20px;border-radius:12px;font-family:inherit;font-size:13px;font-weight:800;
+    background:var(--bg2);color:var(--ink)}
+  .btn-soft.warm{color:var(--warm);border-color:var(--warm)}
 
-  .note{
-    font-size:13px;font-weight:700;color:#5f6b8f;line-height:1.55;
-    padding:15px 18px;border-radius:15px;display:flex;gap:11px;align-items:flex-start;
-    background:rgba(155,208,196,.16);
-  }
-  .note .ring{width:9px;height:9px;border-radius:50%;background:var(--accent2);flex:none;margin-top:5px;
-    box-shadow:0 0 0 3px rgba(155,208,196,.3);animation:breathe 3s ease-in-out infinite}
+  .note{font-size:13px;font-weight:700;color:var(--ink);line-height:1.55;
+    padding:14px 16px;border-radius:13px;display:flex;gap:11px;align-items:flex-start;
+    background:var(--accent-soft)}
+  .note .ring{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none;margin-top:5px;
+    box-shadow:0 0 0 3px rgba(95,174,156,.25)}
 
   /* ABOUT */
-  .about .arow{display:flex;justify-content:space-between;padding:11px 2px;font-size:14px;font-weight:700;
-    border-top:1px solid rgba(160,170,195,.18)}
+  .about .arow{display:flex;justify-content:space-between;padding:11px 2px;font-size:13.5px;font-weight:800;
+    border-top:1px solid var(--line)}
   .about .arow:first-of-type{border-top:0}
   .about .arow span{color:var(--ink-soft);font-weight:600}
-  .links{display:flex;gap:12px;margin-top:18px}
-  .links a{
-    flex:1;text-align:center;text-decoration:none;font-size:12.5px;font-weight:800;color:var(--accent);
-    padding:12px;border-radius:13px;
-    background:linear-gradient(145deg,#f3f6fb,#e4e8f1);
-    box-shadow:3px 3px 8px var(--shadow), -3px -3px 8px var(--light);
-  }
+  .links{display:flex;gap:10px;margin-top:16px}
+  .links a{flex:1;text-align:center;text-decoration:none;font-size:12.5px;font-weight:800;color:var(--accent);
+    padding:11px;border-radius:11px;border:1px solid var(--line);background:var(--bg2)}
 
   @media (max-width:820px){
     .layout{grid-template-columns:1fr}
     nav{position:static;flex-direction:row;flex-wrap:wrap}
     nav a{flex:1}
-    .privacy{display:none}
   }
 </style>
 </head>
-<body>
+<body data-theme="light">
   <div class="topbar">
-    <div class="logo"><span class="gem">💎</span></div>
+    <div class="logo">💎</div>
     <div class="ttl">
       <h1>Crystal Settings</h1>
       <p>tune your quiet on-device companion</p>
     </div>
-    <div class="privacy soft"><span class="ring"></span> running locally · WebGPU · stays with you</div>
+    <div class="saved"><span class="tick">✓</span> changes saved automatically</div>
   </div>
 
   <div class="layout">
     <!-- NAV -->
-    <nav class="soft">
+    <nav class="card">
       <a href="#model" class="on"><span class="ic">🧠</span> Model</a>
       <a href="#generation"><span class="ic">✨</span> Generation</a>
       <a href="#compute"><span class="ic">⚡</span> Compute</a>
       <a href="#privacy"><span class="ic">🌿</span> Privacy &amp; data</a>
       <a href="#appearance"><span class="ic">🎨</span> Appearance</a>
       <a href="#about"><span class="ic">ℹ️</span> About</a>
-      <div class="navfoot"><span class="tick">✓</span> changes saved automatically</div>
     </nav>
 
     <div class="content">
 
       <!-- MODEL -->
-      <section id="model" class="section soft">
+      <section id="model" class="section card">
         <div class="sec-head"><span class="ic">🧠</span><h2>Model</h2></div>
         <p class="sec-sub">Choose which Qwen3.5 model answers you, and manage the weights cached in this browser.</p>
 
-        <div class="seg-wrap inset tight">
-          <div class="seg on">0.8B<small>Qwen3.5</small></div>
-          <div class="seg">2B<small>Qwen3.5</small></div>
-          <div class="seg">4B<small>Qwen3.5</small></div>
+        <div class="dropdown open">
+          <button class="dd-btn">
+            <span class="mi">💎</span>
+            <span class="lbl"><b>Qwen3.5 · 0.8B</b><small>fastest · smallest · ~480 MB</small></span>
+            <span class="chev">▾</span>
+          </button>
+          <div class="dd-menu">
+            <div class="opt on"><span class="mi">💎</span><span class="lbl"><b>Qwen3.5 · 0.8B</b><small>fastest · smallest · ~480 MB</small></span><span class="tick">✓</span></div>
+            <div class="opt"><span class="mi">💠</span><span class="lbl"><b>Qwen3.5 · 2B</b><small>balanced · ~1.3 GB</small></span><span class="tick">✓</span></div>
+            <div class="opt"><span class="mi">🔷</span><span class="lbl"><b>Qwen3.5 · 4B</b><small>sharpest · heavy · ~2.6 GB</small></span><span class="tick">✓</span></div>
+          </div>
         </div>
 
         <div class="mlist">
@@ -257,17 +267,17 @@
       </section>
 
       <!-- GENERATION -->
-      <section id="generation" class="section soft">
+      <section id="generation" class="section card">
         <div class="sec-head"><span class="ic">✨</span><h2>Generation</h2></div>
         <p class="sec-sub">How adventurous and how long Crystal's replies are.</p>
 
         <div class="slider-row">
           <div class="slider-top"><span class="label">Temperature</span><span class="val">0.7</span></div>
-          <div class="track inset"><i style="width:35%"></i><span class="pin" style="left:35%"></span></div>
+          <div class="track"><i style="width:35%"></i><span class="pin" style="left:35%"></span></div>
         </div>
         <div class="slider-row">
           <div class="slider-top"><span class="label">Max reply length</span><span class="val">512 tokens</span></div>
-          <div class="track inset"><i style="width:25%"></i><span class="pin" style="left:25%"></span></div>
+          <div class="track"><i style="width:25%"></i><span class="pin" style="left:25%"></span></div>
         </div>
 
         <div class="row" style="margin-top:6px">
@@ -281,7 +291,7 @@
       </section>
 
       <!-- COMPUTE -->
-      <section id="compute" class="section soft">
+      <section id="compute" class="section card">
         <div class="sec-head"><span class="ic">⚡</span><h2>Compute</h2></div>
         <p class="sec-sub">Where and how the math runs on your hardware.</p>
 
@@ -290,11 +300,11 @@
           <div class="badge-on">WebGPU</div>
         </div>
         <div class="row" style="display:block">
-          <div class="label" style="margin-bottom:13px">Precision</div>
-          <div class="seg-wrap inset tight">
-            <div class="seg on">q4<small>fastest · smallest</small></div>
-            <div class="seg">q8<small>balanced</small></div>
-            <div class="seg">fp16<small>sharpest · heavy</small></div>
+          <div class="label" style="margin-bottom:12px">Precision</div>
+          <div class="seg-wrap">
+            <button class="seg on">q4<small>fastest</small></button>
+            <button class="seg">q8<small>balanced</small></button>
+            <button class="seg">fp16<small>sharpest</small></button>
           </div>
         </div>
         <div class="row">
@@ -304,7 +314,7 @@
       </section>
 
       <!-- PRIVACY -->
-      <section id="privacy" class="section soft">
+      <section id="privacy" class="section card">
         <div class="sec-head"><span class="ic">🌿</span><h2>Privacy &amp; data</h2></div>
         <p class="sec-sub">The whole point of Crystal.</p>
 
@@ -317,26 +327,27 @@
       </section>
 
       <!-- APPEARANCE -->
-      <section id="appearance" class="section soft">
+      <section id="appearance" class="section card">
         <div class="sec-head"><span class="ic">🎨</span><h2>Appearance</h2></div>
         <p class="sec-sub">Make the panel feel like yours.</p>
 
         <div class="row" style="display:block">
-          <div class="label" style="margin-bottom:13px">Theme</div>
-          <div class="seg-wrap inset tight">
-            <div class="seg on">Calm<small>default</small></div>
-            <div class="seg">Light<small>crisp</small></div>
-            <div class="seg">Dark<small>night</small></div>
+          <div class="label" style="margin-bottom:4px">Theme</div>
+          <div class="desc" style="margin-bottom:13px">Defaults to System — Crystal follows your OS light/dark setting automatically.</div>
+          <div class="seg-wrap">
+            <button class="seg on"><span class="ic">🖥️</span> System</button>
+            <button class="seg"><span class="ic">☀️</span> Light</button>
+            <button class="seg"><span class="ic">🌙</span> Dark</button>
           </div>
         </div>
         <div class="slider-row">
           <div class="slider-top"><span class="label">Text size</span><span class="val">Medium</span></div>
-          <div class="track inset"><i style="width:50%"></i><span class="pin" style="left:50%"></span></div>
+          <div class="track"><i style="width:50%"></i><span class="pin" style="left:50%"></span></div>
         </div>
       </section>
 
       <!-- ABOUT -->
-      <section id="about" class="section soft about">
+      <section id="about" class="section card about">
         <div class="sec-head"><span class="ic">ℹ️</span><h2>About</h2></div>
         <p class="sec-sub">What's under the hood.</p>
 
