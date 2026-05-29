@@ -1,0 +1,10 @@
+# pnpm 11 requires an explicit build-script decision per dependency, else
+# `pnpm install --frozen-lockfile` fails in CI with ERR_PNPM_IGNORED_BUILDS.
+# These install scripts aren't needed for our build/test: they're node-side or
+# optional (the browser uses onnxruntime-web/wasm, and esbuild resolves its
+# platform binary without a postinstall). So: do not run them.
+allowBuilds:
+  esbuild: false
+  onnxruntime-node: false
+  protobufjs: false
+  sharp: false
