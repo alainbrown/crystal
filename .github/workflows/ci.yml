@@ -6,36 +6,11 @@ on:
   pull_request:
 
 jobs:
+  # Runs the whole suite (unit + the real-WebGPU e2e journey via `pnpm test`).
+  # macos-14 is the only free runner where Chromium's Metal-via-ANGLE WebGPU
+  # path actually works — Ubuntu + software Vulkan (lavapipe) is far too slow
+  # for transformer inference and times out.
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Unit tests
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
-
-  # The e2e journey drives the real WebGPU engine. macos-14 is the only free
-  # runner where Chromium's Metal-via-ANGLE WebGPU path actually works —
-  # Ubuntu + software Vulkan (lavapipe) is far too slow for transformer
-  # inference and times out.
-  e2e:
     runs-on: macos-14
     timeout-minutes: 30
     steps:
@@ -55,8 +30,18 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: E2E (build + Playwright)
-        run: pnpm test:e2e
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test (unit + e2e)
+        run: pnpm test
+
+      - name: Upload built extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 14
 
       - name: Upload Playwright report on failure
         if: failure()

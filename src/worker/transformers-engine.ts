@@ -1,16 +1,18 @@
 import {
-  AutoProcessor,
-  Qwen3_5ForConditionalGeneration,
-  TextStreamer,
-  InterruptableStoppingCriteria,
-  env,
-  type PreTrainedModel,
-  type Processor,
-} from '@huggingface/transformers'
+  streamText,
+  wrapLanguageModel,
+  extractReasoningMiddleware,
+  type ModelMessage as AiMessage,
+} from 'ai'
+import {
+  transformersJS,
+  type TransformersJSLanguageModel,
+  type TransformersJSModelSettings,
+} from '@browser-ai/transformers-js'
+import { env, type ProgressInfo } from '@huggingface/transformers'
 
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
-import { cleanToken, splitReasoning } from '@/lib/chat'
 import type { Precision } from '@/lib/settings'
 import type { GenerateParams, LoadOptions } from './protocol'
 import type {
@@ -23,29 +25,28 @@ import type {
 env.allowLocalModels = false
 env.useBrowserCache = true
 
-type DType = Record<string, Precision>
+type DType = NonNullable<TransformersJSModelSettings['dtype']>
 
 function dtypeFor(precision: Precision): DType {
   return {
     embed_tokens: precision,
     vision_encoder: 'fp16',
     decoder_model_merged: precision,
-  }
+  } as DType
 }
 
 export class TransformersEngine implements LLMEngine {
-  private model: PreTrainedModel | null = null
-  private processor: Processor | null = null
-  private stopping = new InterruptableStoppingCriteria()
+  private model: TransformersJSLanguageModel | null = null
+  private controller: AbortController | null = null
+  private aborted = false
 
   async load(modelId: ModelId, options: LoadOptions, cb: LoadCallbacks): Promise<void> {
-    const progress_callback = (p: {
-      status: string
-      file?: string
-      loaded?: number
-      total?: number
-      progress?: number
-    }) => {
+    const dtype = dtypeFor(options.precision)
+    const devices: Array<'webgpu' | 'wasm'> = options.cpuFallback
+      ? ['webgpu', 'wasm']
+      : ['webgpu']
+
+    const rawInitProgressCallback = (p: ProgressInfo) => {
       if (p.status === 'progress' && p.file && p.total) {
         cb.onProgress({
           file: p.file,
@@ -56,23 +57,20 @@ export class TransformersEngine implements LLMEngine {
       }
     }
 
-    this.processor = (await AutoProcessor.from_pretrained(modelId, {
-      progress_callback,
-    })) as Processor
-
-    const dtype = dtypeFor(options.precision)
-    const devices: Array<'webgpu' | 'wasm'> = options.cpuFallback
-      ? ['webgpu', 'wasm']
-      : ['webgpu']
-
     let lastErr: unknown
     for (const device of devices) {
       try {
-        this.model = await Qwen3_5ForConditionalGeneration.from_pretrained(modelId, {
-          dtype,
+        const model = transformersJS(modelId, {
           device,
-          progress_callback,
+          dtype,
+          // Qwen3.5 is multimodal: this routes input building through the
+          // documented two-step path (apply_chat_template → text → processor(text)),
+          // rather than the return_dict path that yields invalid inputs for this model.
+          isVisionModel: true,
+          rawInitProgressCallback,
         })
+        await model.createSessionWithProgress()
+        this.model = model
         return
       } catch (err) {
         lastErr = err
@@ -86,63 +84,61 @@ export class TransformersEngine implements LLMEngine {
     params: GenerateParams,
     cb: GenerateCallbacks,
   ): Promise<GenerateResult> {
-    if (!this.model || !this.processor) throw new Error('Model not loaded')
-    this.stopping.reset()
+    if (!this.model) throw new Error('Model not loaded')
+    this.aborted = false
+    this.controller = new AbortController()
 
-    const processor = this.processor as unknown as {
-      (text: string): Promise<Record<string, unknown>>
-      tokenizer: ConstructorParameters<typeof TextStreamer>[0]
-      apply_chat_template: (messages: ModelMessage[], opts: Record<string, unknown>) => string
+    // The framework separates reasoning from the answer. The Qwen3.5 chat template
+    // opens the <think> block in the prompt itself, so the generated stream starts
+    // mid-reasoning with no opening tag — hence startWithReasoning tracks `reasoning`.
+    const wrapped = wrapLanguageModel({
+      model: this.model,
+      middleware: extractReasoningMiddleware({
+        tagName: 'think',
+        startWithReasoning: params.reasoning,
+      }),
+    })
+
+    let reasoning = ''
+    let answer = ''
+    let tokens = 0
+    let started = 0
+
+    const result = streamText({
+      model: wrapped,
+      messages: messages as AiMessage[],
+      temperature: params.temperature,
+      maxOutputTokens: params.maxTokens,
+      abortSignal: this.controller.signal,
+      providerOptions: { 'transformers-js': { enableThinking: params.reasoning } },
+    })
+
+    try {
+      for await (const part of result.fullStream) {
+        if (part.type === 'reasoning-delta') {
+          if (!started) started = Date.now()
+          tokens++
+          reasoning += part.text
+          if (params.reasoning) cb.onToken(part.text, 'reasoning')
+        } else if (part.type === 'text-delta') {
+          if (!started) started = Date.now()
+          tokens++
+          answer += part.text
+          cb.onToken(part.text, 'answer')
+        } else if (part.type === 'error') {
+          throw part.error
+        }
+      }
+    } catch (err) {
+      if (!this.aborted) throw err
+    } finally {
+      this.controller = null
     }
 
-    let raw = ''
-    let emittedReasoning = 0
-    let emittedAnswer = 0
-    let started = 0
-    let tokens = 0
-
-    const streamer = new TextStreamer(processor.tokenizer, {
-      skip_prompt: true,
-      skip_special_tokens: !params.reasoning,
-      token_callback_function: () => {
-        if (!started) started = Date.now()
-        tokens++
-      },
-      callback_function: (text: string) => {
-        raw += cleanToken(text)
-        const { reasoning = '', answer } = splitReasoning(raw)
-        if (params.reasoning && reasoning.length > emittedReasoning) {
-          cb.onToken(reasoning.slice(emittedReasoning), 'reasoning')
-          emittedReasoning = reasoning.length
-        }
-        if (answer.length > emittedAnswer) {
-          cb.onToken(answer.slice(emittedAnswer), 'answer')
-          emittedAnswer = answer.length
-        }
-      },
-    })
-
-    const prompt = processor.apply_chat_template(messages, {
-      add_generation_prompt: true,
-      enable_thinking: params.reasoning,
-    })
-    const inputs = await processor(prompt)
-
-    await this.model.generate({
-      ...inputs,
-      max_new_tokens: params.maxTokens,
-      do_sample: params.temperature > 0,
-      temperature: params.temperature,
-      streamer,
-      stopping_criteria: this.stopping,
-      return_dict_in_generate: true,
-    } as Parameters<PreTrainedModel['generate']>[0])
-
-    const { reasoning, answer } = splitReasoning(raw)
     const elapsedMs = Math.max(1, Date.now() - (started || Date.now()))
     return {
       answer: answer.trim(),
-      reasoning: params.reasoning ? reasoning?.trim() || undefined : undefined,
+      reasoning: params.reasoning ? reasoning.trim() || undefined : undefined,
       stats: {
         tokens,
         elapsedMs,
@@ -152,12 +148,12 @@ export class TransformersEngine implements LLMEngine {
   }
 
   interrupt(): void {
-    this.stopping.interrupt()
+    this.aborted = true
+    this.controller?.abort()
   }
 
   dispose(): void {
-    this.model?.dispose?.()
+    this.interrupt()
     this.model = null
-    this.processor = null
   }
 }
