@@ -10,9 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "pretest:e2e": "pnpm build",
-    "test:e2e": "playwright test"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@fontsource/nunito": "^5.2.7",
@@ -24,7 +22,6 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.4.0",
-    "@playwright/test": "^1.60.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
