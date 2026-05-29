@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Haven · calm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#e8ecf3;
+    --bg2:#eef1f7;
+    --light:#ffffff;
+    --shadow:#c5cbd8;
+    --ink:#4a5168;
+    --ink-soft:#8a91a6;
+    --accent:#7c83ff;
+    --accent2:#9bd0c4;
+    --lilac:#b7a6f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#b9c0cf;
+    display:flex;align-items:center;justify-content:center;min-height:100vh;
+    font-family:'Nunito',sans-serif;
+  }
+  .panel{
+    width:384px;height:100vh;overflow:hidden;
+    background:linear-gradient(160deg,var(--bg2),var(--bg));
+    display:flex;flex-direction:column;color:var(--ink);
+    box-shadow:0 30px 90px rgba(80,90,120,.35);
+  }
+
+  .soft{
+    border-radius:18px;
+    background:linear-gradient(145deg,#f3f6fb,#dde2ec);
+    box-shadow:6px 6px 14px var(--shadow), -6px -6px 14px var(--light);
+  }
+  .inset{
+    border-radius:16px;background:var(--bg);
+    box-shadow:inset 5px 5px 10px var(--shadow), inset -5px -5px 10px var(--light);
+  }
+
+  /* HEADER */
+  header{padding:16px 16px 6px;display:flex;flex-direction:column;gap:11px}
+  .toprow{display:flex;align-items:center;gap:11px}
+  .logo{
+    width:38px;height:38px;border-radius:13px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(145deg,#f3f6fb,#dde2ec);
+    box-shadow:4px 4px 9px var(--shadow), -4px -4px 9px var(--light);
+    font-size:18px;
+  }
+  .logo .leaf{filter:drop-shadow(0 0 6px rgba(124,131,255,.4))}
+  .brand h1{font-size:18px;font-weight:800;letter-spacing:-.3px}
+  .brand p{font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:1px}
+  .privacy{
+    align-self:flex-start;font-size:10.5px;font-weight:700;color:#5f6b8f;
+    padding:6px 11px;border-radius:20px;display:flex;align-items:center;gap:7px;
+  }
+  .privacy .ring{
+    width:8px;height:8px;border-radius:50%;background:var(--accent2);
+    box-shadow:0 0 0 3px rgba(155,208,196,.3);animation:breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe{50%{box-shadow:0 0 0 6px rgba(155,208,196,.15)}}
+
+  /* MODEL SELECTOR */
+  .models{margin:8px 16px 4px;padding:5px;display:flex;gap:5px;border-radius:18px}
+  .seg{
+    flex:1;text-align:center;padding:8px 4px;border-radius:13px;cursor:pointer;
+    font-size:11px;font-weight:700;color:var(--ink-soft);transition:.2s;
+  }
+  .seg small{display:block;font-size:9px;font-weight:600;opacity:.8;margin-top:1px}
+  .seg.on{
+    color:var(--accent);background:linear-gradient(145deg,#f3f6fb,#e4e8f1);
+    box-shadow:3px 3px 7px var(--shadow), -3px -3px 7px var(--light);
+  }
+
+  /* DOWNLOAD CARD */
+  .dl{margin:12px 16px 4px;padding:14px;border-radius:18px}
+  .dl-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .spinner{
+    width:30px;height:30px;border-radius:50%;flex:none;
+    background:conic-gradient(var(--accent) 0 30%, #d9deea 30% 100%);
+    -webkit-mask:radial-gradient(farthest-side,transparent 60%,#000 61%);
+    mask:radial-gradient(farthest-side,transparent 60%,#000 61%);
+    animation:spin 2.4s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .dl-txt{font-size:12px;font-weight:700}
+  .dl-txt span{display:block;font-size:10.5px;font-weight:600;color:var(--ink-soft);margin-top:1px}
+  .pbar{height:9px;border-radius:9px;overflow:hidden;padding:2px}
+  .pbar > i{
+    display:block;height:100%;width:30%;border-radius:9px;
+    background:linear-gradient(90deg,var(--lilac),var(--accent));
+    box-shadow:0 1px 4px rgba(124,131,255,.5);
+    animation:grow 3s ease-in-out infinite alternate;
+  }
+  @keyframes grow{from{width:26%}to{width:34%}}
+
+  /* TRANSCRIPT */
+  .scroll{flex:1;overflow-y:auto;padding:14px 16px 6px;display:flex;flex-direction:column;gap:14px}
+  .scroll::-webkit-scrollbar{width:7px}
+  .scroll::-webkit-scrollbar-thumb{background:#cfd5e2;border-radius:9px}
+  .scroll::-webkit-scrollbar-track{background:transparent}
+
+  .bubble{max-width:84%;padding:11px 13px;font-size:13px;line-height:1.55;font-weight:500}
+  .from-user{align-self:flex-end;color:#fff;border-radius:18px 18px 5px 18px;
+    background:linear-gradient(145deg,#8b91ff,#6f76f5);
+    box-shadow:4px 5px 12px rgba(111,118,245,.4)}
+  .from-bot{align-self:flex-start;border-radius:18px 18px 18px 5px;color:var(--ink);
+    background:linear-gradient(145deg,#f4f7fc,#e3e8f1);
+    box-shadow:4px 5px 11px var(--shadow), -3px -3px 8px var(--light)}
+  .lbl{font-size:9.5px;font-weight:700;color:var(--ink-soft);margin:0 4px 4px;text-transform:uppercase;letter-spacing:.6px}
+  .lbl.r{text-align:right}
+
+  details.think{margin-top:9px;border-radius:13px;overflow:hidden}
+  details.think summary{
+    cursor:pointer;list-style:none;font-size:10.5px;font-weight:700;
+    color:var(--accent);padding:7px 10px;display:flex;align-items:center;gap:7px;
+    background:rgba(124,131,255,.1);border-radius:11px;
+  }
+  details.think summary::-webkit-details-marker{display:none}
+  details.think summary .ch{transition:.2s;font-size:8px}
+  details.think[open] summary .ch{transform:rotate(90deg)}
+  .think-body{font-size:11.5px;line-height:1.5;color:var(--ink-soft);padding:9px 11px 3px;font-weight:600}
+  .think-body em{color:var(--accent);font-style:normal;font-weight:700}
+
+  .typing{display:inline-flex;gap:4px;vertical-align:middle;margin-left:3px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.5;animation:bob 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}
+  .typing i:nth-child(3){animation-delay:.4s}
+  @keyframes bob{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+
+  /* COMPOSER */
+  .composer{padding:12px 16px 14px}
+  .field{border-radius:20px;padding:6px 6px 6px 16px;display:flex;align-items:flex-end;gap:8px}
+  textarea{
+    flex:1;border:0;background:transparent;outline:none;resize:none;
+    font-family:inherit;font-size:13px;font-weight:600;color:var(--ink);
+    line-height:1.4;padding:9px 0;min-height:22px;max-height:90px;
+  }
+  textarea::placeholder{color:var(--ink-soft)}
+  .actions{display:flex;gap:8px;padding-bottom:4px}
+  .iconbtn{
+    width:40px;height:40px;border:0;border-radius:14px;cursor:pointer;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .send{color:#fff;background:linear-gradient(145deg,#8b91ff,#6f76f5);
+    box-shadow:3px 4px 10px rgba(111,118,245,.45)}
+  .stop{color:#e87b8d;background:linear-gradient(145deg,#f3f6fb,#e1e6ef);
+    box-shadow:3px 3px 7px var(--shadow), -3px -3px 7px var(--light)}
+  .stats{
+    display:flex;justify-content:center;gap:14px;margin-top:11px;
+    font-size:10.5px;font-weight:700;color:var(--ink-soft);
+  }
+  .stats b{color:var(--accent)}
+  .stats .d{color:#c7cdda}
+</style>
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <div class="toprow">
+        <div class="logo"><span class="leaf">🌿</span></div>
+        <div class="brand">
+          <h1>Haven</h1>
+          <p>your quiet on-device companion</p>
+        </div>
+      </div>
+      <div class="privacy soft"><span class="ring"></span> running locally · WebGPU · stays with you</div>
+    </header>
+
+    <div class="models inset">
+      <div class="seg on">0.8B<small>Qwen3.5</small></div>
+      <div class="seg">2B<small>Qwen3.5</small></div>
+      <div class="seg">4B<small>Qwen3.5</small></div>
+    </div>
+
+    <div class="dl soft">
+      <div class="dl-top">
+        <div class="spinner"></div>
+        <div class="dl-txt">Warming up your model…<span>Downloading weights · 142 MB / 480 MB</span></div>
+      </div>
+      <div class="pbar inset"><i></i></div>
+    </div>
+
+    <div class="scroll">
+      <div>
+        <div class="lbl r">you</div>
+        <div class="bubble from-user">I've had a rough week. can we just talk for a bit?</div>
+      </div>
+
+      <div>
+        <div class="lbl">haven</div>
+        <div class="bubble from-bot">
+          Of course. I'm right here, and nothing you say leaves this device — it's just the two of us. Want to tell me what's been weighing on you?
+          <details class="think">
+            <summary><span class="ch">▶</span> gentle reasoning</summary>
+            <div class="think-body">User seems emotionally tired. <em>Prioritize warmth</em> over advice; invite, don't push. Keep it short and grounding.</div>
+          </details>
+        </div>
+      </div>
+
+      <div>
+        <div class="lbl r">you</div>
+        <div class="bubble from-user">work has just been a lot. and I'm careful about what I type into AI tools.</div>
+      </div>
+
+      <div>
+        <div class="lbl">haven</div>
+        <div class="bubble from-bot">
+          That caution makes sense — and here it's well placed. There's no server and no API key; the model runs on your own GPU. So go ahead and be as open as you need<span class="typing"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="field inset">
+        <textarea placeholder="Share what's on your mind…">honestly it's the deadlines</textarea>
+        <div class="actions">
+          <button class="iconbtn stop" title="Stop">⏹</button>
+          <button class="iconbtn send" title="Send">↑</button>
+        </div>
+      </div>
+      <div class="stats">
+        <span><b>38</b> tok/s</span><span class="d">·</span>
+        <span><b>412</b> tokens</span><span class="d">·</span>
+        <span>0 sent out</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

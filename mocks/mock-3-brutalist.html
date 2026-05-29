@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EDGE/MODEL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0c0c0c;
+    --paper:#f4f1e9;
+    --acc:#ff3b1f;     /* signal red */
+    --acc2:#ffe800;    /* hazard yellow */
+    --blue:#1f43ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#9a968c;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Archivo',sans-serif;
+  }
+  .panel{
+    width:384px;height:100vh;overflow:hidden;
+    background:var(--paper);color:var(--ink);
+    display:flex;flex-direction:column;
+    border:4px solid var(--ink);
+    box-shadow:14px 14px 0 var(--ink);
+  }
+
+  /* HEADER */
+  header{border-bottom:4px solid var(--ink);background:var(--ink);color:var(--paper)}
+  .masthead{padding:12px 14px 10px}
+  .masthead h1{
+    font-size:34px;font-weight:900;line-height:.86;letter-spacing:-1.5px;
+    text-transform:uppercase;
+  }
+  .masthead h1 .slash{color:var(--acc)}
+  .meta{
+    display:flex;justify-content:space-between;align-items:center;margin-top:8px;
+    font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1px;
+  }
+  .privacy{
+    background:var(--acc2);color:var(--ink);font-weight:700;
+    padding:3px 7px;display:flex;align-items:center;gap:5px;
+  }
+  .privacy .b{width:7px;height:7px;background:var(--ink);animation:flash 1.1s steps(2) infinite}
+  @keyframes flash{50%{opacity:0}}
+
+  /* MODEL SELECTOR */
+  .models{display:flex;border-bottom:4px solid var(--ink)}
+  .col{
+    flex:1;padding:8px 4px;text-align:center;cursor:pointer;
+    border-right:3px solid var(--ink);font-family:'Space Mono',monospace;
+  }
+  .col:last-child{border-right:0}
+  .col .num{font-family:'Archivo';font-size:22px;font-weight:900;line-height:1}
+  .col .tag{font-size:8px;text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+  .col.sel{background:var(--acc);color:var(--paper)}
+  .col.sel .tag::after{content:" ◀ ON"}
+
+  /* DOWNLOAD */
+  .dl{border-bottom:4px solid var(--ink);background:var(--acc2)}
+  .dl-h{display:flex;justify-content:space-between;align-items:baseline;padding:8px 12px 4px}
+  .dl-h .t{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+  .dl-h .p{font-family:'Space Mono';font-size:20px;font-weight:700}
+  .barwrap{height:20px;margin:0 12px 8px;border:3px solid var(--ink);background:var(--paper);position:relative}
+  .barwrap > i{
+    position:absolute;inset:0;width:30%;background:var(--ink);
+    background-image:repeating-linear-gradient(45deg,var(--ink) 0 6px,#333 6px 12px);
+    animation:fill 2.6s ease-in-out infinite alternate;
+  }
+  @keyframes fill{from{width:25%}to{width:34%}}
+  .dl-sub{font-family:'Space Mono';font-size:9px;padding:0 12px 8px;display:flex;justify-content:space-between}
+
+  /* TRANSCRIPT */
+  .scroll{flex:1;overflow-y:auto;background:var(--paper)}
+  .scroll::-webkit-scrollbar{width:10px}
+  .scroll::-webkit-scrollbar-thumb{background:var(--ink)}
+  .scroll::-webkit-scrollbar-track{background:var(--paper);border-left:3px solid var(--ink)}
+
+  .turn{border-bottom:3px solid var(--ink);padding:11px 14px}
+  .turn .role{
+    font-family:'Space Mono';font-size:9px;font-weight:700;text-transform:uppercase;
+    letter-spacing:1.5px;margin-bottom:6px;display:inline-block;padding:2px 6px;
+  }
+  .u .role{background:var(--ink);color:var(--paper)}
+  .a .role{background:var(--blue);color:var(--paper)}
+  .turn .txt{font-size:14px;line-height:1.45;font-weight:600}
+  .u .txt{font-weight:800;font-size:16px;letter-spacing:-.3px}
+
+  details.think{margin-top:9px;border:3px solid var(--ink)}
+  details.think summary{
+    cursor:pointer;list-style:none;background:var(--ink);color:var(--acc2);
+    font-family:'Space Mono';font-size:9px;font-weight:700;letter-spacing:1px;
+    text-transform:uppercase;padding:5px 8px;display:flex;justify-content:space-between;
+  }
+  details.think summary::-webkit-details-marker{display:none}
+  details.think .tb{padding:8px 10px;font-family:'Space Mono';font-size:11px;line-height:1.5;background:var(--paper)}
+  details.think .tb b{background:var(--acc2)}
+
+  .cursor{display:inline-block;width:11px;height:17px;background:var(--acc);vertical-align:-3px;margin-left:2px;animation:flash .8s steps(2) infinite}
+
+  /* COMPOSER */
+  .composer{border-top:4px solid var(--ink);background:var(--paper)}
+  .ta-wrap{padding:10px 12px 8px;position:relative}
+  .ta-wrap label{position:absolute;top:2px;left:12px;font-family:'Space Mono';font-size:8px;letter-spacing:1px;text-transform:uppercase}
+  textarea{
+    width:100%;border:3px solid var(--ink);background:var(--paper);outline:none;resize:none;
+    font-family:'Archivo';font-size:14px;font-weight:700;color:var(--ink);
+    padding:12px 10px 9px;line-height:1.35;min-height:54px;
+  }
+  textarea::placeholder{color:#9a968c;font-weight:600}
+  .btnrow{display:flex;border-top:4px solid var(--ink)}
+  .b-send,.b-stop{
+    flex:1;border:0;cursor:pointer;font-family:'Archivo';font-weight:900;
+    font-size:15px;text-transform:uppercase;letter-spacing:1px;padding:13px 0;
+  }
+  .b-send{background:var(--acc);color:var(--paper);flex:2;border-right:4px solid var(--ink)}
+  .b-stop{background:var(--paper);color:var(--ink)}
+  .stats{
+    display:flex;border-top:4px solid var(--ink);font-family:'Space Mono';
+    font-size:9px;font-weight:700;text-transform:uppercase;
+  }
+  .stats div{flex:1;padding:6px 8px;border-right:3px solid var(--ink);text-align:center}
+  .stats div:last-child{border-right:0}
+  .stats .big{display:block;font-family:'Archivo';font-size:15px;font-weight:900}
+  .stats .hl{background:var(--acc2)}
+</style>
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <div class="masthead">
+        <h1>EDGE<span class="slash">/</span>MODEL</h1>
+        <div class="meta">
+          <span>NO. 003 — ON-DEVICE LLM</span>
+          <span class="privacy"><span class="b"></span>LOCAL · WEBGPU</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="models">
+      <div class="col sel"><div class="num">0.8</div><div class="tag">Qwen3.5 B</div></div>
+      <div class="col"><div class="num">2</div><div class="tag">Qwen3.5 B</div></div>
+      <div class="col"><div class="num">4</div><div class="tag">Qwen3.5 B</div></div>
+    </div>
+
+    <div class="dl">
+      <div class="dl-h"><span class="t">Downloading Weights</span><span class="p">30%</span></div>
+      <div class="barwrap"><i></i></div>
+      <div class="dl-sub"><span>142 MB / 480 MB</span><span>→ INDEXEDDB CACHE</span></div>
+    </div>
+
+    <div class="scroll">
+      <div class="turn u">
+        <span class="role">User</span>
+        <div class="txt">Why should I trust a browser AI with anything sensitive?</div>
+      </div>
+
+      <div class="turn a">
+        <span class="role">Qwen3.5</span>
+        <div class="txt">Because trust here is structural, not promised. There is no server to leak from. Weights run on your GPU, in this tab. Close it and the compute is gone.
+          <details class="think">
+            <summary><span>REASONING ▾</span><span>2 STEPS</span></summary>
+            <div class="tb">Frame trust as <b>architecture</b>, not policy. Emphasize: zero egress, no key, ephemeral compute. Avoid marketing tone.</div>
+          </details>
+        </div>
+      </div>
+
+      <div class="turn u">
+        <span class="role">User</span>
+        <div class="txt">And the bigger model — does it phone home?</div>
+      </div>
+
+      <div class="turn a">
+        <span class="role">Qwen3.5</span>
+        <div class="txt">No. Same pipeline at every size. The only network call ever made is the one-time weight download you just watched. After that the network can be off entirely and<span class="cursor"></span></div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="ta-wrap">
+        <label>INPUT</label>
+        <textarea placeholder="WRITE SOMETHING…">prove it — turn off wifi</textarea>
+      </div>
+      <div class="btnrow">
+        <button class="b-send">Send ▸</button>
+        <button class="b-stop">■ Stop</button>
+      </div>
+      <div class="stats">
+        <div class="hl"><span class="big">44</span>TOK/SEC</div>
+        <div><span class="big">287</span>TOKENS</div>
+        <div><span class="big">0</span>BYTES OUT</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

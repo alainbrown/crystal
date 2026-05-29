@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>localmind // terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#050806;
+    --panel:#070b08;
+    --phos:#3dff8b;
+    --phos-dim:#1c6b3e;
+    --amber:#ffb347;
+    --grid:#0e1a12;
+    --muted:#2f5f43;
+    --line:#10341f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:#1a1a1a;
+    background-image:radial-gradient(circle at 50% 30%, #2a2a2a, #141414 70%);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    min-height:100vh;
+  }
+
+  /* SIDE PANEL */
+  .panel{
+    width:384px;height:100vh;
+    position:relative;overflow:hidden;
+    background:var(--bg);
+    color:var(--phos);
+    display:flex;flex-direction:column;
+    box-shadow:0 0 0 1px #0c130d, 0 30px 80px rgba(0,0,0,.7);
+    text-shadow:0 0 4px rgba(61,255,139,.45);
+  }
+  /* scanlines + crt vignette */
+  .panel::before{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:50;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.18) 3px, rgba(0,0,0,.18) 4px);
+    mix-blend-mode:multiply;
+  }
+  .panel::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:51;
+    background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%);
+    animation:flicker 6s infinite steps(60);
+  }
+  @keyframes flicker{0%,97%{opacity:.85}98%{opacity:.6}99%{opacity:.95}100%{opacity:.8}}
+
+  /* HEADER */
+  header{
+    padding:12px 14px 10px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#08130c,#050806);
+    position:relative;z-index:10;
+  }
+  .titlebar{display:flex;align-items:center;gap:8px}
+  .dots{display:flex;gap:5px}
+  .dot{width:9px;height:9px;border:1px solid var(--phos-dim);border-radius:50%}
+  .dot.live{background:var(--phos);box-shadow:0 0 8px var(--phos);animation:pulse 1.6s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .brand{font-weight:800;font-size:14px;letter-spacing:1px}
+  .brand .blink{color:var(--amber);animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+  .privacy{
+    margin-top:8px;font-size:10px;color:var(--muted);
+    display:flex;align-items:center;gap:6px;letter-spacing:.5px;
+  }
+  .privacy .ok{color:var(--phos)}
+  .privacy .gpu{
+    border:1px solid var(--phos-dim);padding:1px 5px;border-radius:2px;
+    color:var(--phos);font-weight:700;
+  }
+
+  /* MODEL SELECTOR */
+  .modelbar{
+    padding:9px 14px;border-bottom:1px solid var(--line);
+    display:flex;flex-direction:column;gap:6px;position:relative;z-index:10;
+  }
+  .modellabel{font-size:9px;color:var(--muted);letter-spacing:1px}
+  .models{display:flex;gap:5px}
+  .chip{
+    flex:1;text-align:center;font-size:10px;padding:5px 2px;
+    border:1px solid var(--line);color:var(--muted);
+    background:#060d09;cursor:pointer;border-radius:2px;
+    white-space:nowrap;transition:.15s;
+  }
+  .chip.sel{
+    color:var(--bg);background:var(--phos);border-color:var(--phos);
+    font-weight:700;text-shadow:none;box-shadow:0 0 12px rgba(61,255,139,.5);
+  }
+  .chip .b{font-weight:800}
+
+  /* DOWNLOAD BANNER */
+  .dl{
+    margin:10px 14px;padding:10px 11px;
+    border:1px solid var(--phos-dim);border-radius:3px;
+    background:#06120b;position:relative;z-index:10;
+  }
+  .dl-head{display:flex;justify-content:space-between;font-size:10px;color:var(--amber);margin-bottom:7px}
+  .dl-head .pct{color:var(--phos);font-weight:700}
+  .bar{
+    height:10px;border:1px solid var(--phos-dim);border-radius:2px;
+    background:repeating-linear-gradient(90deg,#0a1c12 0 4px,transparent 4px 8px);
+    overflow:hidden;position:relative;
+  }
+  .bar > i{
+    display:block;height:100%;width:29.6%;
+    background:repeating-linear-gradient(90deg,var(--phos) 0 6px,var(--phos-dim) 6px 9px);
+    box-shadow:0 0 10px var(--phos);
+    animation:load 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes load{from{width:24%}to{width:33%}}
+  .dl-sub{font-size:9px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+
+  /* TRANSCRIPT */
+  .scroll{
+    flex:1;overflow-y:auto;padding:10px 14px 4px;
+    position:relative;z-index:10;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .scroll::-webkit-scrollbar{width:8px}
+  .scroll::-webkit-scrollbar-thumb{background:var(--phos-dim);border-radius:0}
+  .scroll::-webkit-scrollbar-track{background:#040705}
+
+  .msg{font-size:12px;line-height:1.55}
+  .who{font-size:9px;letter-spacing:1px;margin-bottom:3px;color:var(--muted)}
+  .user .who{color:var(--amber)}
+  .user .who::before{content:"user@local:~$ "}
+  .bot .who{color:var(--phos)}
+  .bot .who::before{content:"qwen3.5 ▸ "}
+  .user .body{
+    color:var(--amber);text-shadow:0 0 4px rgba(255,179,71,.4);
+    border-left:2px solid var(--amber);padding-left:9px;
+  }
+  .bot .body{
+    color:var(--phos);border-left:2px solid var(--phos-dim);padding-left:9px;
+  }
+
+  /* thinking block */
+  details.think{
+    margin:6px 0 0;border:1px dashed var(--phos-dim);border-radius:2px;
+    background:#05100a;
+  }
+  details.think summary{
+    cursor:pointer;list-style:none;padding:5px 8px;font-size:9px;
+    color:var(--muted);letter-spacing:.5px;display:flex;align-items:center;gap:6px;
+  }
+  details.think summary::-webkit-details-marker{display:none}
+  details.think summary .tri{transition:.2s}
+  details.think[open] summary .tri{transform:rotate(90deg)}
+  .think-body{
+    padding:0 9px 8px;font-size:10px;line-height:1.5;color:var(--muted);
+    border-top:1px dashed var(--line);padding-top:7px;
+  }
+  .think-body .l{color:var(--phos-dim)}
+
+  .caret{display:inline-block;width:8px;height:14px;background:var(--phos);
+    vertical-align:-2px;margin-left:2px;box-shadow:0 0 8px var(--phos);
+    animation:blink 1s steps(2) infinite}
+
+  /* COMPOSER */
+  .composer{
+    border-top:1px solid var(--line);padding:10px 12px;
+    background:#06100a;position:relative;z-index:10;
+  }
+  .inputwrap{
+    border:1px solid var(--phos-dim);border-radius:3px;background:#040805;
+    padding:8px 9px;display:flex;flex-direction:column;gap:8px;
+  }
+  .prompt-row{display:flex;gap:7px;align-items:flex-start}
+  .ps1{color:var(--amber);font-size:12px;line-height:1.4;user-select:none}
+  textarea{
+    flex:1;background:transparent;border:0;resize:none;outline:none;
+    color:var(--phos);font-family:inherit;font-size:12px;line-height:1.4;
+    text-shadow:0 0 4px rgba(61,255,139,.4);min-height:34px;
+  }
+  textarea::placeholder{color:var(--muted)}
+  .btns{display:flex;gap:7px}
+  .btn{
+    flex:1;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:1px;
+    padding:7px;border-radius:2px;cursor:pointer;text-shadow:none;
+  }
+  .send{background:var(--phos);color:var(--bg);border:1px solid var(--phos);
+    box-shadow:0 0 12px rgba(61,255,139,.4)}
+  .stop{background:#1a0707;color:#ff6b6b;border:1px solid #5a1414}
+
+  /* FOOTER STATS */
+  .stats{
+    display:flex;justify-content:space-between;font-size:9px;
+    color:var(--muted);margin-top:9px;letter-spacing:.5px;
+  }
+  .stats b{color:var(--phos)}
+  .stats .amber{color:var(--amber)}
+</style>
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <div class="titlebar">
+        <div class="dots"><span class="dot live"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="brand">localmind<span class="blink">_</span></div>
+      </div>
+      <div class="privacy">
+        <span class="ok">●</span> running locally <span class="gpu">WebGPU</span> · no net · 0 bytes out
+      </div>
+    </header>
+
+    <div class="modelbar">
+      <div class="modellabel">// MODEL</div>
+      <div class="models">
+        <div class="chip sel">Qwen3.5<br><span class="b">0.8B</span></div>
+        <div class="chip">Qwen3.5<br><span class="b">2B</span></div>
+        <div class="chip">Qwen3.5<br><span class="b">4B</span></div>
+      </div>
+    </div>
+
+    <div class="dl">
+      <div class="dl-head"><span>fetching weights…</span><span class="pct">29.6%</span></div>
+      <div class="bar"><i></i></div>
+      <div class="dl-sub"><span>142 MB / 480 MB</span><span>cache: idb · 11.2 MB/s</span></div>
+    </div>
+
+    <div class="scroll">
+      <div class="msg user">
+        <div class="who"></div>
+        <div class="body">explain how this runs with no server. is anything sent anywhere?</div>
+      </div>
+
+      <div class="msg bot">
+        <div class="who"></div>
+        <div class="body">
+          Nothing leaves this machine. The model weights are downloaded once, cached in your browser's storage, then executed on your GPU through WebGPU. Inference happens in the tab — there is no backend, no API key, no telemetry.
+          <details class="think">
+            <summary><span class="tri">▶</span> reasoning · 3 steps · 0.4s</summary>
+            <div class="think-body">
+              <span class="l">[1]</span> user worried about data exfiltration → confirm zero egress.<br>
+              <span class="l">[2]</span> clarify weights cached in IndexedDB, not re-fetched.<br>
+              <span class="l">[3]</span> note compute target = local WebGPU adapter.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="msg user">
+        <div class="who"></div>
+        <div class="body">nice. what happens if I close the tab mid-answer?</div>
+      </div>
+
+      <div class="msg bot">
+        <div class="who"></div>
+        <div class="body">
+          Generation stops immediately — the compute graph lives only in this tab's memory. The downloaded weights stay cached, so reopening is instant. Your conversation is held in local storage and never<span class="caret"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <div class="inputwrap">
+        <div class="prompt-row">
+          <span class="ps1">&gt;</span>
+          <textarea placeholder="type a message… (enter to send)">does it work offline on a plane?</textarea>
+        </div>
+        <div class="btns">
+          <button class="btn send">▸ SEND</button>
+          <button class="btn stop">■ STOP</button>
+        </div>
+      </div>
+      <div class="stats">
+        <span><b>42.7</b> tok/s</span>
+        <span class="amber">ctx 1,284 / 8,192</span>
+        <span>gen <b>318</b> tok</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
