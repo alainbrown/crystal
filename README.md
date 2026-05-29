@@ -121,3 +121,7 @@ builds all three.
 Everything runs locally. The only network traffic is the one-time model-weight download
 from the Hugging Face Hub (allowed via the extension's `host_permissions`). Your
 conversations never leave the browser.
+
+## License
+
+[MIT](LICENSE) © 2026 Alain Brown
