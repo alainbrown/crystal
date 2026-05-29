@@ -1,7 +1,3 @@
-// LLM web worker. Owns the engine, runs load/generate off the main thread,
-// and speaks the typed protocol. Always uses the real WebGPU engine — the
-// MockEngine is a unit-test double only (see tests/unit).
-
 /// <reference lib="webworker" />
 import type { LLMEngine } from './engine'
 import type { RequestMessage, ResponseMessage } from './protocol'
@@ -10,7 +6,6 @@ let enginePromise: Promise<LLMEngine> | null = null
 
 async function getEngine(): Promise<LLMEngine> {
   if (!enginePromise) {
-    // Lazy-import the heavy real engine only when actually needed.
     enginePromise = import('./transformers-engine').then((m) => new m.TransformersEngine())
   }
   return enginePromise
@@ -20,8 +15,6 @@ function post(msg: ResponseMessage) {
   ;(self as DedicatedWorkerGlobalScope).postMessage(msg)
 }
 
-// Serialize load/generate/dispose so generation never starts before the model
-// is loaded. `interrupt` bypasses the queue so it can stop an in-flight run.
 let queue: Promise<void> = Promise.resolve()
 
 self.onmessage = (event: MessageEvent<RequestMessage>) => {

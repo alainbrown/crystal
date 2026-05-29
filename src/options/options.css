@@ -1,5 +1,3 @@
-/* Full-tab settings page (the extension options page). Adapted from the mock. */
-
 body {
   min-height: 100vh;
   color: var(--ink);
@@ -8,7 +6,6 @@ body {
   padding: 0 24px 80px;
 }
 
-/* TOP BAR */
 .topbar { max-width: 1040px; margin: 0 auto; padding: 34px 4px 26px; display: flex; align-items: center; gap: 16px; }
 .topbar .logo {
   width: 54px; height: 54px; border-radius: 18px; flex: none;
@@ -25,10 +22,8 @@ body {
 }
 .topbar .privacy .ring { width: 9px; height: 9px; }
 
-/* LAYOUT */
 .layout { max-width: 1040px; margin: 0 auto; display: grid; grid-template-columns: 236px 1fr; gap: 28px; align-items: start; }
 
-/* NAV */
 nav { position: sticky; top: 24px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
 nav a {
   text-decoration: none; color: var(--ink-soft); font-size: 13.5px; font-weight: 700;
@@ -40,7 +35,6 @@ nav a.on { color: var(--accent); background: var(--seg-grad); box-shadow: 3px 3p
 nav .navfoot { margin-top: 12px; padding: 12px 14px 4px; border-top: 1px solid rgba(160, 170, 195, 0.2); font-size: 11px; font-weight: 700; color: var(--ink-soft); display: flex; align-items: center; gap: 7px; }
 nav .navfoot .tick { color: var(--accent2); }
 
-/* CONTENT */
 .content { display: flex; flex-direction: column; gap: 26px; }
 .section { padding: 26px 28px; border-radius: 20px; scroll-margin-top: 24px; }
 .sec-head { display: flex; align-items: center; gap: 11px; margin-bottom: 8px; }
@@ -48,19 +42,16 @@ nav .navfoot .tick { color: var(--accent2); }
 .sec-head h2 { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; }
 .sec-sub { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin: 0 0 20px 30px; }
 
-/* ROW */
 .row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 14px 2px; }
 .row + .row { border-top: 1px solid rgba(160, 170, 195, 0.18); }
 .row .label { font-size: 14.5px; font-weight: 700; }
 .row .desc { font-size: 12px; font-weight: 600; color: var(--ink-soft); margin-top: 3px; line-height: 1.45; max-width: 440px; }
 
-/* SEGMENTED (sized for the wide layout) */
 .seg-wrap { padding: 6px; display: flex; gap: 6px; border-radius: 16px; }
 .seg-wrap.tight { max-width: 360px; }
 .seg-wrap .seg { padding: 11px 6px; font-size: 13px; }
 .seg-wrap .seg small { font-size: 10px; margin-top: 2px; }
 
-/* TOGGLE (sized up) */
 .row .switch { width: 52px; height: 30px; }
 .row .switch .knob { width: 24px; height: 24px; }
 .row .switch.on .knob { left: 25px; }
@@ -71,7 +62,6 @@ nav .navfoot .tick { color: var(--accent2); }
 }
 .badge-on[data-ok='no'] { background: linear-gradient(145deg, #e89aa6, #e0707f); box-shadow: 3px 3px 8px rgba(224, 112, 127, 0.4); }
 
-/* SLIDER */
 .slider-row { padding: 16px 2px; }
 .slider-row + .slider-row { border-top: 1px solid rgba(160, 170, 195, 0.18); }
 .slider-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 13px; }
@@ -82,7 +72,6 @@ nav .navfoot .tick { color: var(--accent2); }
 .track .pin { position: absolute; top: 50%; width: 22px; height: 22px; border-radius: 50%; transform: translate(-50%, -50%); background: linear-gradient(145deg, #fdfdff, #e6eaf3); box-shadow: 2px 2px 6px var(--shadow), -2px -2px 6px var(--light); pointer-events: none; }
 .track input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 
-/* CACHED MODEL LIST */
 .mlist { margin-top: 18px; }
 .mfile { display: flex; align-items: center; gap: 14px; padding: 14px 2px; }
 .mfile + .mfile { border-top: 1px solid rgba(160, 170, 195, 0.18); }
@@ -98,7 +87,6 @@ nav .navfoot .tick { color: var(--accent2); }
 }
 .mfile .mact.dl { color: var(--accent); }
 
-/* ACTION BUTTONS */
 .btn-soft {
   border: 0; cursor: pointer; margin-top: 18px;
   padding: 13px 22px; border-radius: 14px; font-family: inherit; font-size: 13px; font-weight: 800;
@@ -113,7 +101,6 @@ nav .navfoot .tick { color: var(--accent2); }
 }
 .note .ring { width: 9px; height: 9px; margin-top: 5px; flex: none; }
 
-/* ABOUT */
 .about .arow { display: flex; justify-content: space-between; padding: 11px 2px; font-size: 14px; font-weight: 700; border-top: 1px solid rgba(160, 170, 195, 0.18); }
 .about .arow:first-of-type { border-top: 0; }
 .about .arow span { color: var(--ink-soft); font-weight: 600; }

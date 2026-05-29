@@ -1,7 +1,3 @@
-// Central chat state. Owns the worker, mirrors settings, and turns streamed
-// worker messages into UI state. Pure-ish: the worker is created lazily so the
-// store can be imported in tests without spawning one.
-
 import { create } from 'zustand'
 import {
   assistantPlaceholder,
@@ -37,7 +33,6 @@ export interface ChatState {
   applySettings: (s: Settings) => void
 }
 
-// Allow tests to inject a fake client.
 let clientFactory: () => WorkerClient = () => new WorkerClient()
 export function __setClientFactory(f: () => WorkerClient) {
   clientFactory = f
@@ -47,7 +42,6 @@ let client: WorkerClient | null = null
 let unsubscribeSettings: (() => void) | null = null
 
 export const useChatStore = create<ChatState>((set, get) => {
-  /** Mutate the trailing assistant message in place. */
   function patchAssistant(fn: (m: ChatMessage) => ChatMessage) {
     set((state) => {
       const messages = [...state.messages]
@@ -106,7 +100,6 @@ export const useChatStore = create<ChatState>((set, get) => {
     return client
   }
 
-  /** Load the model if the desired one isn't ready yet. */
   function ensureLoaded() {
     const { settings, loadedModelId, status } = get()
     if (loadedModelId === settings.modelId) return
@@ -140,7 +133,6 @@ export const useChatStore = create<ChatState>((set, get) => {
     applySettings: (s: Settings) => {
       const prev = get().settings
       set({ settings: s })
-      // Reloading is needed when the model or its compute config changes.
       if (
         s.modelId !== prev.modelId ||
         s.precision !== prev.precision ||

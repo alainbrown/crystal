@@ -1,5 +1,3 @@
-// Thin typed wrapper around the LLM worker for the UI side.
-
 import type { RequestMessage, ResponseMessage } from '@/worker/protocol'
 import { isResponse } from '@/worker/protocol'
 

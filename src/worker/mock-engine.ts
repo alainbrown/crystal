@@ -1,6 +1,3 @@
-// Deterministic engine used by tests and the dev preview (VITE_LLM_ENGINE=mock).
-// No network, no WebGPU — just fakes progress and streams a canned reply.
-
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
 import type { GenerateParams, LoadOptions } from './protocol'
@@ -14,9 +11,7 @@ import type {
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
 export interface MockOptions {
-  /** Per-step delay; set to 0 in tests for speed. */
   stepMs?: number
-  /** Number of fake download chunks. */
   chunks?: number
 }
 
@@ -106,7 +101,6 @@ export class MockEngine implements LLMEngine {
 }
 
 function tokenize(text: string): string[] {
-  // Split into word-ish chunks that keep trailing spaces, like a real streamer.
   return text.match(/\S+\s*/g) ?? []
 }
 

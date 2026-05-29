@@ -1,5 +1,3 @@
-// Generates Crystal's diamond toolbar icons (16/48/128) as PNGs — no native
-// image deps. Run once via: node scripts/make-icons.mjs
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -8,7 +6,6 @@ import { fileURLToPath } from 'node:url'
 const outDir = join(dirname(dirname(fileURLToPath(import.meta.url))), 'src', 'assets')
 mkdirSync(outDir, { recursive: true })
 
-// --- minimal PNG encoder (RGBA, no filtering) ---
 const crcTable = (() => {
   const t = new Uint32Array(256)
   for (let n = 0; n < 256; n++) {
@@ -37,9 +34,8 @@ function encodePng(width, height, rgba) {
   const ihdr = Buffer.alloc(13)
   ihdr.writeUInt32BE(width, 0)
   ihdr.writeUInt32BE(height, 4)
-  ihdr[8] = 8 // bit depth
-  ihdr[9] = 6 // RGBA
-  // rows prefixed with filter byte 0
+  ihdr[8] = 8
+  ihdr[9] = 6
   const stride = width * 4
   const raw = Buffer.alloc((stride + 1) * height)
   for (let y = 0; y < height; y++) {
@@ -54,22 +50,19 @@ function encodePng(width, height, rgba) {
   ])
 }
 
-// --- draw a rounded lilac→indigo tile with a white diamond ---
 function lerp(a, b, t) {
   return Math.round(a + (b - a) * t)
 }
 function draw(size) {
   const rgba = Buffer.alloc(size * size * 4)
   const c = (size - 1) / 2
-  const tileR = size * 0.22 // corner radius
-  const diamond = size * 0.3 // diamond half-extent
-  // brand colors
-  const top = [0x9b, 0x8c, 0xf0] // lilac
-  const bot = [0x6f, 0x76, 0xf5] // indigo
+  const tileR = size * 0.22
+  const diamond = size * 0.3
+  const top = [0x9b, 0x8c, 0xf0]
+  const bot = [0x6f, 0x76, 0xf5]
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const i = (y * size + x) * 4
-      // rounded-rect mask
       const dx = Math.max(tileR - x, x - (size - 1 - tileR), 0)
       const dy = Math.max(tileR - y, y - (size - 1 - tileR), 0)
       const inTile = Math.hypot(dx, dy) <= tileR + 0.5
@@ -81,10 +74,9 @@ function draw(size) {
       let r = lerp(top[0], bot[0], t)
       let g = lerp(top[1], bot[1], t)
       let b = lerp(top[2], bot[2], t)
-      // white diamond glyph
       const d = Math.abs(x - c) / diamond + Math.abs(y - c) / diamond
       if (d <= 1) {
-        const k = Math.min(1, (1 - d) * 4) // soft edge
+        const k = Math.min(1, (1 - d) * 4)
         r = lerp(r, 255, k)
         g = lerp(g, 255, k)
         b = lerp(b, 255, k)

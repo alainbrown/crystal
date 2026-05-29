@@ -7,7 +7,6 @@ import {
   type Settings,
 } from '@/lib/settings'
 
-/** Loads settings, keeps them in sync across surfaces, and persists patches. */
 export function useSettings() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   const [loaded, setLoaded] = useState(false)
@@ -28,7 +27,6 @@ export function useSettings() {
   }, [])
 
   async function update(patch: Partial<Settings>) {
-    // Optimistic: reflect immediately, then persist.
     setSettings((prev) => ({ ...prev, ...patch }))
     await saveSettings(patch)
   }

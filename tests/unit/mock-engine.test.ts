@@ -62,7 +62,6 @@ describe('MockEngine', () => {
       { onToken: () => engine.interrupt() },
     )
     const res = await p
-    // Interrupting on the first token should yield at most a couple tokens.
     expect(res.stats.tokens).toBeLessThan(5)
   })
 

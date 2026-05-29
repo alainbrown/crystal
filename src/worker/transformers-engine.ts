@@ -1,7 +1,3 @@
-// Real engine: runs Qwen3.5 in-browser via transformers.js on WebGPU.
-// The library is bundled locally (CSP-safe); only the model WEIGHTS stream
-// from the HF Hub. The ORT WASM runtime is served from the vendored /ort/ dir.
-
 import {
   AutoProcessor,
   Qwen3_5ForConditionalGeneration,
@@ -24,12 +20,6 @@ import type {
   LoadCallbacks,
 } from './engine'
 
-// Bundle the onnxruntime WASM runtime as local assets (CSP-safe, served from
-// the extension origin). MV3 forbids the default remote-CDN fetch, so we hand
-// ORT explicit asset URLs instead. The jsep build is a superset — it powers
-// WebGPU and also runs on WASM-CPU — so this one pair covers both the GPU path
-// and the CPU-fallback setting. Vite emits each into dist/assets and the `?url`
-// import resolves to its hashed path.
 import ortWasm from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.wasm?url'
 import ortMjs from 'onnxruntime-web/ort-wasm-simd-threaded.jsep.mjs?url'
 
@@ -37,7 +27,6 @@ env.allowLocalModels = false
 env.useBrowserCache = true
 if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.wasmPaths = { wasm: ortWasm, mjs: ortMjs }
-  // We are already inside a worker; don't spawn ORT's own proxy worker.
   env.backends.onnx.wasm.proxy = false
 }
 
@@ -94,7 +83,6 @@ export class TransformersEngine implements LLMEngine {
         return
       } catch (err) {
         lastErr = err
-        // Try the next device (e.g. fall back to wasm) if allowed.
       }
     }
     throw lastErr instanceof Error ? lastErr : new Error('Failed to load model')
@@ -116,8 +104,6 @@ export class TransformersEngine implements LLMEngine {
       ) => Promise<Record<string, unknown>>
     }
 
-    // Incremental reasoning/answer splitter: re-split the running buffer each
-    // token so it's robust to <think> tags landing mid-token.
     let raw = ''
     let emittedReasoning = 0
     let emittedAnswer = 0

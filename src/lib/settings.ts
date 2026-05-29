@@ -1,6 +1,3 @@
-// User settings, persisted to chrome.storage.local. Falls back to an in-memory
-// store when chrome.storage is unavailable (unit tests, plain web preview).
-
 import { DEFAULT_MODEL_ID, isModelId, type ModelId } from './models'
 
 export type Precision = 'q4' | 'q8' | 'fp16'
@@ -41,7 +38,6 @@ function hasChromeStorage(): boolean {
 
 let memory: Settings = { ...DEFAULT_SETTINGS }
 
-/** Coerce arbitrary stored data back into a valid Settings object. */
 export function normalize(raw: unknown): Settings {
   const s = { ...DEFAULT_SETTINGS }
   if (!raw || typeof raw !== 'object') return s
@@ -80,7 +76,6 @@ export async function saveSettings(patch: Partial<Settings>): Promise<Settings> 
   return next
 }
 
-/** Subscribe to settings changes from other extension surfaces. Returns an unsubscribe fn. */
 export function subscribeSettings(cb: (s: Settings) => void): () => void {
   if (!hasChromeStorage() || !chrome.storage.onChanged) return () => {}
   const handler = (

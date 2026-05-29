@@ -1,5 +1,3 @@
-// Typed message protocol between the UI and the LLM web worker.
-
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
 import type { Precision } from '@/lib/settings'
@@ -21,7 +19,6 @@ export interface FileProgress {
   file: string
   loaded: number
   total: number
-  /** 0..1 */
   progress: number
 }
 
@@ -31,14 +28,12 @@ export interface GenStats {
   tokensPerSec: number
 }
 
-/** UI → Worker */
 export type RequestMessage =
   | { type: 'load'; modelId: ModelId; options: LoadOptions }
   | { type: 'generate'; requestId: string; messages: ModelMessage[]; params: GenerateParams }
   | { type: 'interrupt' }
   | { type: 'dispose' }
 
-/** Worker → UI */
 export type ResponseMessage =
   | { type: 'status'; status: EngineStatus; detail?: string }
   | { type: 'progress'; data: FileProgress }

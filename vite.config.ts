@@ -15,7 +15,6 @@ export default defineConfig({
     },
   },
   plugins: [react(), crx({ manifest })],
-  // transformers.js is large; raise the warning ceiling so the build stays quiet.
   build: {
     chunkSizeWarningLimit: 4096,
     target: 'esnext',
@@ -26,7 +25,6 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    // CRXJS uses a websocket for HMR inside the extension.
     hmr: { port: 5173 },
   },
 })

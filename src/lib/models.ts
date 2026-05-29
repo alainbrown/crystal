@@ -1,6 +1,3 @@
-// The Qwen3.5 models Crystal can run, all in ONNX-OPT (q4) form on the HF Hub.
-// Weights download on first use and are cached by the browser thereafter.
-
 export type ModelId =
   | 'onnx-community/Qwen3.5-0.8B-ONNX-OPT'
   | 'onnx-community/Qwen3.5-2B-ONNX-OPT'
@@ -8,10 +5,8 @@ export type ModelId =
 
 export interface ModelInfo {
   id: ModelId
-  /** Short label shown in the selector, e.g. "0.8B". */
   label: string
   family: string
-  /** Approximate q4 download size in MB, for the progress/size UI. */
   approxDownloadMB: number
   blurb: string
 }

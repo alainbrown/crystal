@@ -1,6 +1,3 @@
-// The engine abstraction. The real implementation wraps transformers.js;
-// a mock implementation drives tests and the dev preview without downloads.
-
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
 import type { FileProgress, GenStats, GenerateParams, LoadOptions } from './protocol'
@@ -26,7 +23,6 @@ export interface LLMEngine {
     params: GenerateParams,
     cb: GenerateCallbacks,
   ): Promise<GenerateResult>
-  /** Request that an in-flight generation stop at the next token. */
   interrupt(): void
   dispose(): void
 }

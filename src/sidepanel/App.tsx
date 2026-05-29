@@ -18,14 +18,12 @@ export function App() {
     void init()
   }, [init])
 
-  // Reflect theme/size on the document so tokens.css variables switch.
   useEffect(() => {
     const root = document.documentElement
     root.dataset.theme = theme
     root.dataset.size = textSize
   }, [theme, textSize])
 
-  // Keep the transcript pinned to the latest message.
   useEffect(() => {
     const el = scrollRef.current
     if (el) el.scrollTop = el.scrollHeight

@@ -5,8 +5,6 @@ import type { RequestMessage, ResponseMessage } from '@/worker/protocol'
 import { MockEngine } from '@/worker/mock-engine'
 import { DEFAULT_MODEL_ID } from '@/lib/models'
 
-// A main-thread stand-in for the worker that mirrors its serialized behavior,
-// backed by the deterministic MockEngine. No real Worker is spawned.
 class FakeClient {
   private listeners = new Set<(m: ResponseMessage) => void>()
   private engine = new MockEngine({ stepMs: 0, chunks: 3 })
@@ -72,10 +70,10 @@ describe('chat store', () => {
     })
 
     const msgs = store.getState().messages
-    expect(msgs).toHaveLength(2) // user + assistant
+    expect(msgs).toHaveLength(2)
     expect(msgs[0]).toMatchObject({ role: 'user', content: 'hello there' })
     expect(msgs[1].content).toContain('hello there')
-    expect(msgs[1].reasoning).toBeTruthy() // reasoning on by default
+    expect(msgs[1].reasoning).toBeTruthy()
     expect(store.getState().stats?.tokens).toBeGreaterThan(0)
     expect(store.getState().error).toBeNull()
   })
