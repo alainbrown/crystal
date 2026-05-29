@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystal — brilliant-cut gem">
+  <defs>
+    <linearGradient id="f1-tile" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF0FF"/>
+      <stop offset="1" stop-color="#DDE0FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#f1-tile)"/>
+  <!-- brilliant-cut diamond, front view, solid distinct facets -->
+  <g stroke="#FFFFFF" stroke-width="2.25" stroke-linejoin="round">
+    <!-- crown -->
+    <polygon points="46,38 82,38 72,58 56,58" fill="#C8CBFF"/>   <!-- table -->
+    <polygon points="46,38 30,58 56,58"       fill="#AAB0FF"/>   <!-- left crown -->
+    <polygon points="82,38 98,58 72,58"       fill="#9098FF"/>   <!-- right crown -->
+    <!-- pavilion -->
+    <polygon points="30,58 56,58 64,106"      fill="#7178F2"/>   <!-- left pavilion -->
+    <polygon points="56,58 72,58 64,106"      fill="#5A61E2"/>   <!-- center pavilion -->
+    <polygon points="72,58 98,58 64,106"      fill="#474ECB"/>   <!-- right pavilion -->
+  </g>
+  <!-- sharp outer silhouette on top for clean edge -->
+  <polygon points="46,38 82,38 98,58 64,106 30,58" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,33 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystal — faceted chat bubble">
+  <defs>
+    <linearGradient id="b4-tile" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF0FF"/>
+      <stop offset="1" stop-color="#DDE0FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#b4-tile)"/>
+  <!-- speech bubble with tail, clipped so facets stay inside -->
+  <defs>
+    <clipPath id="b4-clip">
+      <path d="M40 28 H88 a22 22 0 0 1 22 22 V74 a22 22 0 0 1 -22 22 H62 l-18 16 v-16 h-4 a22 22 0 0 1 -22 -22 V50 a22 22 0 0 1 22 -22 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#b4-clip)">
+    <rect x="14" y="20" width="100" height="100" fill="#6B72F0"/>
+    <!-- crystalline facets: clean diagonal planes, distinct tones -->
+    <polygon points="14,20 78,20 30,120 14,120" fill="#8088FF"/>     <!-- lit left plane -->
+    <polygon points="78,20 114,20 114,60 50,120 30,120" fill="#5A61E2"/> <!-- mid -->
+    <polygon points="114,60 114,120 50,120" fill="#474ECB"/>          <!-- shadow corner -->
+    <!-- top highlight sliver -->
+    <polygon points="14,20 114,20 96,34 32,34" fill="#A9AEFF" fill-opacity=".55"/>
+  </g>
+  <!-- bubble outline -->
+  <path d="M40 28 H88 a22 22 0 0 1 22 22 V74 a22 22 0 0 1 -22 22 H62 l-18 16 v-16 h-4 a22 22 0 0 1 -22 -22 V50 a22 22 0 0 1 22 -22 Z"
+        fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- three dots -->
+  <g fill="#FFFFFF">
+    <circle cx="50" cy="62" r="5"/>
+    <circle cx="67" cy="62" r="5"/>
+    <circle cx="84" cy="62" r="5"/>
+  </g>
+</svg>

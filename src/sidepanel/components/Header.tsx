@@ -1,3 +1,4 @@
+import logoUrl from '@/assets/logo.svg'
 import { ModelSelector } from './ModelSelector'
 
 function openSettings() {
@@ -9,7 +10,7 @@ function openSettings() {
 export function Header() {
   return (
     <header className="panel-header">
-      <div className="logo">💎</div>
+      <img className="logo" src={logoUrl} alt="" />
       <div className="brand">Crystal</div>
       <ModelSelector />
       <button className="gear" title="Settings" onClick={openSettings} aria-label="Open settings">

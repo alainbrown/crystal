@@ -1,0 +1,21 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystal">
+  <defs>
+    <linearGradient id="ps-tile" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21253A"/>
+      <stop offset="1" stop-color="#161A28"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="26" fill="url(#ps-tile)"/>
+  <!-- bold spectrum, fewer + thicker so it survives 16px -->
+  <g stroke-width="9" stroke-linecap="round">
+    <path d="M80 62 L116 50" stroke="#A78BFF"/>
+    <path d="M80 66 L116 72" stroke="#5C8BFF"/>
+    <path d="M80 70 L114 96" stroke="#5CE0C8"/>
+  </g>
+  <!-- large prism filling the tile -->
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round">
+    <polygon points="60,20 60,104 26,104" fill="#7E85FF"/>
+    <polygon points="60,20 92,104 60,104" fill="#5158D6"/>
+  </g>
+  <polygon points="60,20 92,104 26,104" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/>
+</svg>

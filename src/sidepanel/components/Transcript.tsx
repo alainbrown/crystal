@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import logoUrl from '@/assets/logo.svg'
 import { useChatStore } from '@/store/chat-store'
 import { Message } from './Message'
 
@@ -10,7 +11,7 @@ export const Transcript = forwardRef<HTMLDivElement>(function Transcript(_props,
     <div className="scroll" ref={ref}>
       {messages.length === 0 ? (
         <div className="empty">
-          <div className="empty-gem">💎</div>
+          <img className="empty-gem" src={logoUrl} alt="" />
           <p className="empty-title">Nothing leaves this device.</p>
           <p className="empty-sub">
             Crystal runs the model on your own GPU — no server, no API key. Say anything.

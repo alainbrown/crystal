@@ -1,0 +1,22 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Crystal — C lettermark with gem">
+  <defs>
+    <linearGradient id="m3-tile" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C82FF"/>
+      <stop offset="1" stop-color="#5258D8"/>
+    </linearGradient>
+    <linearGradient id="m3-c" x1="30" y1="40" x2="86" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#DFE2FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#m3-tile)"/>
+  <!-- bold C opening to the right -->
+  <path d="M86.5 43.4 A32 32 0 1 0 86.5 84.6 L75 74.9 A17 17 0 1 1 75 53.1 Z"
+        fill="url(#m3-c)" stroke="#4A50C8" stroke-opacity=".15" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- crystal facet glint nested in the C's opening -->
+  <g>
+    <polygon points="86,52 96,64 86,76 80,64" fill="#7C82FF"/>
+    <polygon points="86,52 86,64 80,64" fill="#9CA1FF"/>
+    <polygon points="86,76 86,64 80,64" fill="#6168E2"/>
+  </g>
+</svg>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import logoUrl from '@/assets/logo.svg'
 import { MODELS, formatSize, getModel } from '@/lib/models'
 import { Dropdown, type DropdownOption } from '@/components/Dropdown'
 import { useSettings } from '@/hooks/useSettings'
@@ -49,7 +50,7 @@ export function Options() {
   return (
     <>
       <div className="topbar">
-        <div className="logo">💎</div>
+        <img className="logo" src={logoUrl} alt="" />
         <div className="ttl">
           <h1>Crystal Settings</h1>
           <p>tune your quiet on-device companion</p>
