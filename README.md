@@ -1,5 +1,13 @@
 # Crystal
 
+[![CI](https://github.com/alainbrown/crystal/actions/workflows/ci.yml/badge.svg)](https://github.com/alainbrown/crystal/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-6b72f0.svg)](LICENSE)
+![Chrome Manifest V3](https://img.shields.io/badge/Chrome-Manifest%20V3-5258d8?logo=googlechrome&logoColor=white)
+![WebGPU](https://img.shields.io/badge/WebGPU-on--device-6b72f0)
+![React 19](https://img.shields.io/badge/React-19-9aa0ff?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
+
 A private, on-device AI chat panel for Chrome. A multimodal **Qwen3.5** model runs
 entirely in your browser via **WebGPU** — no server, no API key, no data leaving your
 machine. Model weights download once from the Hugging Face Hub and are cached by the
