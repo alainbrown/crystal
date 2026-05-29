@@ -97,10 +97,11 @@ pnpm test:e2e        # builds dist/ and runs Playwright against the REAL WebGPU 
 Unit tests cover the pure logic (chat helpers, settings, the engine contract via a test-only
 `MockEngine`, and store wiring) with no network or GPU.
 
-The e2e suite loads the real extension build and drives the actual transformers.js/WebGPU
-engine — **no mock**. It therefore needs a WebGPU-capable Chromium and downloads the model on
-first run (slow), so it's meant to run locally on a real machine rather than in a GPU-less CI.
-See "Known issues".
+The e2e is a **single real journey** (~2-minute budget): open the side panel → onboarding →
+model loads → adjust a setting → chat → a real model response renders. It drives the actual
+transformers.js/WebGPU engine — **no mock** — so it needs a WebGPU-capable Chromium and the
+default 0.8B model available (fastest with a warm cache). Meant to run locally on a real
+machine rather than in a GPU-less CI. See "Known issues".
 
 ## Stack
 
@@ -134,7 +135,7 @@ mocks/                   original static design mocks
 - The build emits a redundant ~23 MB `asyncify.wasm` that transformers.js references
   statically; it's never loaded at runtime (we point `wasmPaths` at the jsep build). Harmless
   dead weight in `dist/`; could be stripped with a small Vite plugin later.
-- The Playwright e2e suite runs the **real** engine, so it needs a WebGPU-capable machine and
-  a first-run model download — it is not expected to pass in a GPU-less/headless CI.
-  Separately, MV3 service-worker registration under headless Chromium still needs work for the
-  `extensionId` fixture to resolve there.
+- The Playwright e2e is a single real-engine journey budgeted to ~2 minutes, so it needs a
+  WebGPU-capable machine and a reasonably fast/warm model cache — not expected to pass in a
+  GPU-less/headless CI. Separately, MV3 service-worker registration under headless Chromium
+  still needs work for the `extensionId` fixture to resolve there.

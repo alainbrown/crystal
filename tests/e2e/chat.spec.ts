@@ -1,39 +1,43 @@
 import { test, expect } from './fixtures'
 
-// Drives the real UI against the real WebGPU engine: load → stream → done.
-// The first run downloads model weights (~480 MB) and inference can be slow,
-// so this is generously timed and meant for a WebGPU-capable machine.
-test('streams a real reply in the side panel', async ({ context, extensionId }) => {
-  test.setTimeout(10 * 60_000)
-  const page = await context.newPage()
-  await page.goto(`chrome-extension://${extensionId}/src/sidepanel/index.html`)
+// One real journey, budgeted to ~2 minutes:
+// open side panel → onboard → model loads → adjust a setting → chat → response.
+test('side panel: onboard, load, adjust setting, chat, get a real response', async ({
+  context,
+  extensionId,
+}) => {
+  // 1. Open the side panel. Opening it kicks off model loading in the background.
+  const panel = await context.newPage()
+  await panel.goto(`chrome-extension://${extensionId}/src/sidepanel/index.html`)
 
-  // Empty state before any conversation.
-  await expect(page.getByText('Nothing leaves this device.')).toBeVisible()
+  // 2. Onboarding: the empty/welcome state and the privacy assurance.
+  await expect(panel.getByText('Nothing leaves this device.')).toBeVisible()
+  await expect(panel.getByText(/running locally/i)).toBeVisible()
 
-  const input = page.getByPlaceholder("Share what's on your mind…")
-  await input.fill('Reply with a short greeting.')
-  await page.getByRole('button', { name: 'Send' }).click()
+  // 3. Model load is underway — the download/warm-up card appears.
+  await expect(panel.getByText(/Warming up your model/i)).toBeVisible({ timeout: 30_000 })
 
-  // The user's message appears immediately.
-  await expect(page.locator('.from-user')).toHaveText('Reply with a short greeting.')
+  // 4. Adjust a setting in the options tab (turn reasoning off → shorter, faster
+  //    replies). This persists to chrome.storage and syncs to the panel live,
+  //    while the model keeps loading in the background.
+  const options = await context.newPage()
+  await options.goto(`chrome-extension://${extensionId}/src/options/index.html`)
+  await expect(options.getByRole('heading', { name: 'Crystal Settings' })).toBeVisible()
+  const reasoning = options.getByRole('switch', { name: 'Reasoning mode' })
+  await expect(reasoning).toHaveAttribute('aria-checked', 'true') // on by default
+  await reasoning.click()
+  await expect(reasoning).toHaveAttribute('aria-checked', 'false')
+  await options.close()
 
-  // The model loads (download card may appear) and then streams a non-empty
-  // assistant reply. Allow plenty of time for first-run weight download.
-  const bot = page.locator('.from-bot').last()
-  await expect(bot).not.toBeEmpty({ timeout: 9 * 60_000 })
+  // 5. Chat: send a short prompt from the panel.
+  await panel.bringToFront()
+  await panel.getByPlaceholder("Share what's on your mind…").fill('Say hello in one word.')
+  await panel.getByRole('button', { name: 'Send' }).click()
+  await expect(panel.locator('.from-user')).toHaveText('Say hello in one word.')
 
-  // Telemetry reflects a completed generation.
-  await expect(page.locator('.stats')).toContainText('tok/s')
-  const tokens = await page.locator('.stats b').first().innerText()
-  expect(Number(tokens)).toBeGreaterThan(0)
-})
-
-test('settings page renders without loading a model', async ({ context, extensionId }) => {
-  const page = await context.newPage()
-  await page.goto(`chrome-extension://${extensionId}/src/options/index.html`)
-
-  await expect(page.getByRole('heading', { name: 'Crystal Settings' })).toBeVisible()
-  await expect(page.getByText('Precision')).toBeVisible()
-  await expect(page.getByText('Qwen3.5 0.8B')).toBeVisible()
+  // 6. Render the real model response: the assistant bubble fills in and the
+  //    token telemetry updates. Most of the time budget is the model load.
+  const reply = panel.locator('.from-bot').last()
+  await expect(reply).not.toBeEmpty({ timeout: 90_000 })
+  await expect(panel.locator('.stats b').first()).not.toHaveText('—')
 })
