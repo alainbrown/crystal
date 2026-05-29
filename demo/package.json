@@ -1,0 +1,13 @@
+{
+  "name": "crystal-demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Remotion demo for the Crystal extension. Renders the real extension React components driven deterministically per-frame. Deps resolve from the repo-root node_modules (single React instance).",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "still": "remotion still src/index.ts Demo",
+    "render:mp4": "remotion render src/index.ts Demo out/crystal-demo.mp4",
+    "render:gif": "remotion render src/index.ts Demo out/crystal-demo.gif --codec=gif --every-nth-frame=2 --scale=0.5"
+  }
+}

@@ -7,6 +7,9 @@ dist/
 *.pem
 *.tsbuildinfo
 
+# demo render scratch (curated deliverables live in demo/store-assets/)
+demo/out/
+
 # test artifacts
 playwright-report/
 test-results/

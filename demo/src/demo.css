@@ -1,0 +1,215 @@
+/* ════ Stage / brand backdrop ════ */
+.stage {
+  background:
+    radial-gradient(120% 80% at 50% -10%, #8086ff 0%, rgba(128, 134, 255, 0) 55%),
+    linear-gradient(150deg, #6b72f0 0%, #5258d8 45%, #3f45b8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ════ Browser window ════ */
+.bw {
+  width: 1480px;
+  height: 900px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 40px 120px rgba(20, 24, 45, 0.45), 0 8px 24px rgba(20, 24, 45, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+.bw-toolbar {
+  height: 60px;
+  flex: none;
+  background: #e9ecf3;
+  border-bottom: 1px solid #d7dbe6;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 20px;
+}
+.bw-lights {
+  display: flex;
+  gap: 9px;
+}
+.bw-lights i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: block;
+}
+.bw-omni {
+  flex: 1;
+  height: 34px;
+  background: #ffffff;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px;
+  color: #6b7186;
+  font-size: 15px;
+  font-weight: 600;
+  max-width: 620px;
+}
+.bw-omni .bw-lock {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.bw-ext {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bw-ext img {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: block;
+}
+.bw-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* faint placeholder webpage */
+.bw-page {
+  flex: 1;
+  background: #fbfcfe;
+  padding: 56px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.ph {
+  background: #eef0f6;
+  border-radius: 8px;
+}
+.ph-title {
+  width: 46%;
+  height: 34px;
+  background: #e6e9f3;
+}
+.ph-line {
+  width: 88%;
+  height: 16px;
+}
+.ph-line.short {
+  width: 64%;
+}
+.ph-block {
+  width: 100%;
+  height: 210px;
+  border-radius: 14px;
+}
+
+/* side-panel dock — the real panel renders at its native ~400px width and is
+   uniformly scaled up to fill the dock, so the fixed-px UI stays crisp and
+   readable in-frame (the production side panel is ~400px wide). */
+.bw-dock {
+  width: 580px;
+  flex: none;
+  border-left: 1px solid #e2e5ee;
+  background: var(--bg2);
+  position: relative;
+  overflow: hidden;
+}
+.panel-scaler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px; /* native panel width */
+  height: 580px; /* dock body height (840) ÷ scale (1.45) */
+  transform: scale(1.45);
+  transform-origin: top left;
+}
+
+/* ════ Real panel sizing override (production uses height:100vh) ════ */
+.demo-panel.panel {
+  width: 100%;
+  height: 100%;
+}
+
+/* Reasoning block is shown expanded throughout the demo: the production
+   <details> is uncontrolled and would default closed (and get reset by the
+   store-driven re-renders), so force its body open and the chevron down. */
+.demo-panel details.think > .think-body {
+  display: block !important;
+}
+.demo-panel details.think::details-content {
+  content-visibility: visible !important;
+}
+.demo-panel details.think summary .ch {
+  transform: rotate(90deg);
+}
+
+/* ════ Panel-only "Shot" (marketing screenshots) ════ */
+.shot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 580px;
+  transform: scale(2);
+  transform-origin: top left;
+}
+.shot .demo-panel {
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+/* ════ Caption (lower third) ════ */
+.caption {
+  position: absolute;
+  left: 50%;
+  bottom: 70px;
+  transform: translate(-50%, 0);
+  background: rgba(16, 18, 34, 0.62);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  padding: 18px 34px;
+  border-radius: 18px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+/* ════ End card ════ */
+.endcard {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 50% 0%, #8086ff 0%, rgba(128, 134, 255, 0) 55%),
+    linear-gradient(150deg, #6b72f0 0%, #5258d8 45%, #3f45b8 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+}
+.endcard-logo {
+  width: 168px;
+  height: 168px;
+  border-radius: 38px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+.endcard-brand {
+  margin-top: 30px;
+  font-size: 76px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+}
+.endcard-tag {
+  font-size: 30px;
+  font-weight: 600;
+  opacity: 0.92;
+}

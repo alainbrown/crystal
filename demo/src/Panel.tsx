@@ -1,0 +1,67 @@
+import { useLayoutEffect, useRef } from 'react'
+import { useCurrentFrame } from 'remotion'
+import logoUrl from '@/assets/logo.svg'
+import { Dropdown, type DropdownOption } from '@/components/Dropdown'
+import { MODELS, formatSize } from '@/lib/models'
+import { DEFAULT_SETTINGS } from '@/lib/settings'
+import { useChatStore } from '@/store/chat-store'
+import { Transcript } from '@/sidepanel/components/Transcript'
+import { Composer } from '@/sidepanel/components/Composer'
+import { StatsBar } from '@/sidepanel/components/StatsBar'
+import { snapshotAt } from './timeline'
+
+// Same option list the real ModelSelector builds.
+const OPTIONS: DropdownOption[] = MODELS.map((m) => ({
+  value: m.id,
+  icon: m.icon,
+  title: `${m.family} · ${m.label}`,
+  sub: `${m.blurb} · ~${formatSize(m.approxDownloadMB)}`,
+}))
+
+/**
+ * The real Crystal side panel, driven deterministically from the current frame.
+ * Header is composed here so the real <Dropdown> can be opened on cue; the
+ * transcript, composer, stats and message rendering are the production
+ * components, fed by the real Zustand store.
+ */
+export function Panel() {
+  const frame = useCurrentFrame()
+  const t = snapshotAt(frame)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Push scripted state into the real store before paint (scrub-safe: each
+  // frame sets an absolute snapshot, never an increment). The reasoning
+  // <details> is forced visible via CSS in demo.css (see `.think-body`), since
+  // store-driven re-renders would reset an imperatively-opened element.
+  useLayoutEffect(() => {
+    useChatStore.setState({
+      messages: t.messages,
+      status: t.status,
+      stats: t.stats,
+      settings: { ...DEFAULT_SETTINGS, modelId: t.modelId },
+      loadedModelId: t.modelId,
+    })
+  })
+
+  return (
+    <div className="panel demo-panel" data-theme="light" ref={panelRef}>
+      <header className="panel-header">
+        <img className="logo" src={logoUrl} alt="" />
+        <div className="brand">Crystal</div>
+        <Dropdown
+          value={t.modelId}
+          options={OPTIONS}
+          open={t.dropdownOpen}
+          onChange={() => {}}
+          ariaLabel="Model"
+        />
+        <button className="gear" title="Settings" aria-label="Open settings">
+          ⚙
+        </button>
+      </header>
+      <Transcript />
+      <Composer value={t.typedText} />
+      <StatsBar />
+    </div>
+  )
+}

@@ -28,6 +28,9 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.4.0",
     "@playwright/test": "^1.60.0",
+    "@remotion/cli": "^4.0.468",
+    "@remotion/google-fonts": "^4.0.468",
+    "@remotion/transitions": "^4.0.468",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -37,6 +40,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "jsdom": "^29.1.1",
+    "remotion": "^4.0.468",
     "typescript": "^6.0.3",
     "vite": "^8.0.14",
     "vitest": "^4.1.7"

@@ -8,6 +8,8 @@ browser.
 Crystal is a Chrome **Manifest V3** extension with two surfaces: a chat **side panel**
 and a full-tab **settings** page.
 
+![Crystal demo — typing a message, the model reasoning then streaming a reply, and switching models](demo/store-assets/crystal-demo.gif)
+
 ## How it works
 
 Inference runs in the extension's **background service worker**, which owns a single

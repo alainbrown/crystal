@@ -1,8 +1,12 @@
 import { useState, type KeyboardEvent } from 'react'
 import { useChatStore } from '@/store/chat-store'
 
-export function Composer() {
-  const [text, setText] = useState('')
+export function Composer({ value: controlledValue }: { value?: string } = {}) {
+  const [localText, setText] = useState('')
+  // `value`, when provided, drives the field from outside (the Remotion demo
+  // types into it deterministically). Production renders <Composer/> with no
+  // props, so behavior is unchanged.
+  const text = controlledValue ?? localText
   const send = useChatStore((s) => s.send)
   const stop = useChatStore((s) => s.stop)
   const status = useChatStore((s) => s.status)

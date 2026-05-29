@@ -14,6 +14,7 @@ export function Dropdown({
   disabled = false,
   className,
   ariaLabel,
+  open: controlledOpen,
 }: {
   value: string
   options: DropdownOption[]
@@ -21,8 +22,11 @@ export function Dropdown({
   disabled?: boolean
   className?: string
   ariaLabel?: string
+  /** When set, the menu's open state is driven externally (Remotion demo). */
+  open?: boolean
 }) {
-  const [open, setOpen] = useState(false)
+  const [localOpen, setOpen] = useState(false)
+  const open = controlledOpen ?? localOpen
   const ref = useRef<HTMLDivElement>(null)
   const current = options.find((o) => o.value === value) ?? options[0]
 

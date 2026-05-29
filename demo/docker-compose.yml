@@ -1,0 +1,10 @@
+# Render the demo in a container. Run from the repo root or from demo/:
+#   docker compose -f demo/docker-compose.yml run --rm render
+# Rendered files land in demo/out/ on the host.
+services:
+  render:
+    build:
+      context: ..
+      dockerfile: demo/Dockerfile
+    volumes:
+      - ./out:/app/demo/out
