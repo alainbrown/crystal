@@ -1,4 +1,4 @@
-import { DEFAULT_MODEL_ID, isModelId, type ModelId } from './models'
+import { DEFAULT_MODEL_ID, getModel, isModelId, type ModelId } from './models'
 
 export type Precision = 'q4' | 'q8' | 'fp16'
 export type Theme = 'system' | 'light' | 'dark'
@@ -20,8 +20,13 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   modelId: DEFAULT_MODEL_ID,
   temperature: 0.7,
-  maxTokens: 512,
-  reasoning: true,
+  // A sane reply-length backstop. The ceiling stays at the model's full context
+  // (see normalize), so this is a default, not an arbitrary cap.
+  maxTokens: 2048,
+  // Thinking is off by default for now: the AI SDK provider path passes no
+  // repetition penalty, so small models can loop inside <think>. Re-enable via
+  // the Reasoning toggle in settings.
+  reasoning: false,
   stream: true,
   precision: 'q4',
   cpuFallback: false,
@@ -44,7 +49,9 @@ export function normalize(raw: unknown): Settings {
   const r = raw as Record<string, unknown>
   if (isModelId(r.modelId)) s.modelId = r.modelId
   if (typeof r.temperature === 'number') s.temperature = clamp(r.temperature, 0, 2)
-  if (typeof r.maxTokens === 'number') s.maxTokens = clamp(Math.round(r.maxTokens), 16, 4096)
+  if (typeof r.maxTokens === 'number') {
+    s.maxTokens = clamp(Math.round(r.maxTokens), 1, getModel(s.modelId).contextTokens)
+  }
   if (typeof r.reasoning === 'boolean') s.reasoning = r.reasoning
   if (typeof r.stream === 'boolean') s.stream = r.stream
   if (r.precision === 'q4' || r.precision === 'q8' || r.precision === 'fp16') s.precision = r.precision

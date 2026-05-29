@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { MODELS, formatSize } from '@/lib/models'
+import { MODELS, formatSize, getModel } from '@/lib/models'
 import { Dropdown, type DropdownOption } from '@/components/Dropdown'
 import { useSettings } from '@/hooks/useSettings'
 import { useApplyTheme } from '@/hooks/useApplyTheme'
@@ -118,7 +118,7 @@ export function Options() {
               value={settings.maxTokens}
               display={`${settings.maxTokens} tok`}
               min={64}
-              max={4096}
+              max={getModel(settings.modelId).contextTokens}
               step={64}
               onChange={(maxTokens) => update({ maxTokens })}
             />

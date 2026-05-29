@@ -6,6 +6,7 @@ import {
   saveSettings,
   __testing,
 } from '@/lib/settings'
+import { DEFAULT_MODEL_ID, getModel } from '@/lib/models'
 
 beforeEach(() => __testing.resetMemory())
 
@@ -19,8 +20,11 @@ describe('normalize', () => {
   it('clamps numeric ranges', () => {
     expect(normalize({ temperature: 99 }).temperature).toBe(2)
     expect(normalize({ temperature: -5 }).temperature).toBe(0)
-    expect(normalize({ maxTokens: 1_000_000 }).maxTokens).toBe(4096)
-    expect(normalize({ maxTokens: 1 }).maxTokens).toBe(16)
+    // maxTokens is capped at the selected model's context window, not an arbitrary limit.
+    expect(normalize({ maxTokens: 1_000_000 }).maxTokens).toBe(
+      getModel(DEFAULT_MODEL_ID).contextTokens,
+    )
+    expect(normalize({ maxTokens: 0 }).maxTokens).toBe(1)
   })
 
   it('rejects invalid enum values', () => {

@@ -62,6 +62,9 @@ describe('chat store', () => {
     await store.getState().init()
     await vi.waitFor(() => expect(store.getState().loadedModelId).toBe(DEFAULT_MODEL_ID))
 
+    // Reasoning is off by default now; enable it to exercise the reasoning stream.
+    store.setState({ settings: { ...store.getState().settings, reasoning: true } })
+
     await store.getState().send('hello there')
     await vi.waitFor(() => {
       const last = store.getState().messages.at(-1)

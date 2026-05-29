@@ -9,8 +9,13 @@ export interface ModelInfo {
   family: string
   icon: string
   approxDownloadMB: number
+  /** The model's native context window, in tokens — the hard ceiling for input + output. */
+  contextTokens: number
   blurb: string
 }
+
+// Qwen3.5 ships a 32K-token context window across every size in the family.
+const QWEN35_CONTEXT = 32_768
 
 export const MODELS: readonly ModelInfo[] = [
   {
@@ -19,6 +24,7 @@ export const MODELS: readonly ModelInfo[] = [
     family: 'Qwen3.5',
     icon: '💎',
     approxDownloadMB: 480,
+    contextTokens: QWEN35_CONTEXT,
     blurb: 'fastest · smallest',
   },
   {
@@ -27,6 +33,7 @@ export const MODELS: readonly ModelInfo[] = [
     family: 'Qwen3.5',
     icon: '💠',
     approxDownloadMB: 1300,
+    contextTokens: QWEN35_CONTEXT,
     blurb: 'balanced',
   },
   {
@@ -35,6 +42,7 @@ export const MODELS: readonly ModelInfo[] = [
     family: 'Qwen3.5',
     icon: '🔷',
     approxDownloadMB: 2600,
+    contextTokens: QWEN35_CONTEXT,
     blurb: 'sharpest · heavy',
   },
 ] as const
