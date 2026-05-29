@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useChatStore } from '@/store/chat-store'
+import { useApplyTheme } from '@/hooks/useApplyTheme'
 import { Header } from './components/Header'
-import { ModelSelector } from './components/ModelSelector'
 import { DownloadCard } from './components/DownloadCard'
 import { Transcript } from './components/Transcript'
 import { Composer } from './components/Composer'
@@ -18,11 +18,11 @@ export function App() {
     void init()
   }, [init])
 
+  useApplyTheme(theme)
+
   useEffect(() => {
-    const root = document.documentElement
-    root.dataset.theme = theme
-    root.dataset.size = textSize
-  }, [theme, textSize])
+    document.documentElement.dataset.size = textSize
+  }, [textSize])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -32,7 +32,6 @@ export function App() {
   return (
     <div className="panel">
       <Header />
-      <ModelSelector />
       <DownloadCard />
       <Transcript ref={scrollRef} />
       <Composer />

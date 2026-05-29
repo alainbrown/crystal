@@ -24,7 +24,7 @@ export function Composer() {
 
   return (
     <div className="composer">
-      <div className="field inset">
+      <div className="field">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}

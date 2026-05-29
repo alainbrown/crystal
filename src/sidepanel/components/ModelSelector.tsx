@@ -1,6 +1,14 @@
-import { MODELS } from '@/lib/models'
+import { Dropdown, type DropdownOption } from '@/components/Dropdown'
+import { MODELS, formatSize, type ModelId } from '@/lib/models'
 import { saveSettings } from '@/lib/settings'
 import { useChatStore } from '@/store/chat-store'
+
+const OPTIONS: DropdownOption[] = MODELS.map((m) => ({
+  value: m.id,
+  icon: m.icon,
+  title: `${m.family} · ${m.label}`,
+  sub: `${m.blurb} · ~${formatSize(m.approxDownloadMB)}`,
+}))
 
 export function ModelSelector() {
   const current = useChatStore((s) => s.settings.modelId)
@@ -8,20 +16,12 @@ export function ModelSelector() {
   const busy = status === 'loading' || status === 'generating'
 
   return (
-    <div className="models inset" role="tablist" aria-label="Model size">
-      {MODELS.map((m) => (
-        <button
-          key={m.id}
-          role="tab"
-          aria-selected={m.id === current}
-          className={`seg${m.id === current ? ' on' : ''}`}
-          disabled={busy && m.id !== current}
-          onClick={() => void saveSettings({ modelId: m.id })}
-        >
-          {m.label}
-          <small>{m.family}</small>
-        </button>
-      ))}
-    </div>
+    <Dropdown
+      value={current}
+      options={OPTIONS}
+      disabled={busy}
+      ariaLabel="Model"
+      onChange={(modelId) => void saveSettings({ modelId: modelId as ModelId })}
+    />
   )
 }

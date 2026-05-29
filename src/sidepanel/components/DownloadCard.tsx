@@ -19,7 +19,7 @@ export function DownloadCard() {
     : `Preparing ${model.family} ${model.label}…`
 
   return (
-    <div className="dl soft" role="status" aria-live="polite">
+    <div className="dl" role="status" aria-live="polite">
       <div className="dl-top">
         <div className="spinner" />
         <div className="dl-txt">
@@ -27,7 +27,7 @@ export function DownloadCard() {
           <span>{detail}</span>
         </div>
       </div>
-      <div className="pbar inset">
+      <div className="pbar">
         <i style={{ width: `${pct}%` }} />
       </div>
     </div>

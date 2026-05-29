@@ -14,7 +14,7 @@ export function Section({
   children: ReactNode
 }) {
   return (
-    <section id={id} className="section soft">
+    <section id={id} className="section card">
       <div className="sec-head">
         <span className="ic">{icon}</span>
         <h2>{title}</h2>
@@ -59,6 +59,7 @@ export interface SegOption<T extends string> {
   value: T
   label: string
   blurb?: string
+  icon?: string
 }
 
 export function Segmented<T extends string>({
@@ -66,16 +67,19 @@ export function Segmented<T extends string>({
   options,
   onChange,
   label,
+  desc,
 }: {
   value: T
   options: SegOption<T>[]
   onChange: (v: T) => void
   label?: string
+  desc?: string
 }) {
   return (
     <div className="row" style={{ display: 'block' }}>
-      {label ? <div className="label" style={{ marginBottom: 13 }}>{label}</div> : null}
-      <div className="seg-wrap inset tight" role="tablist" aria-label={label}>
+      {label ? <div className="label">{label}</div> : null}
+      {desc ? <div className="desc" style={{ marginBottom: 13 }}>{desc}</div> : null}
+      <div className="seg-wrap" role="tablist" aria-label={label} style={label && !desc ? { marginTop: 12 } : undefined}>
         {options.map((o) => (
           <button
             key={o.value}
@@ -84,6 +88,7 @@ export function Segmented<T extends string>({
             className={`seg${o.value === value ? ' on' : ''}`}
             onClick={() => onChange(o.value)}
           >
+            {o.icon ? <span className="ic">{o.icon}</span> : null}
             {o.label}
             {o.blurb ? <small>{o.blurb}</small> : null}
           </button>
@@ -117,7 +122,7 @@ export function Slider({
         <span className="label">{label}</span>
         <span className="val">{display}</span>
       </div>
-      <div className="track inset">
+      <div className="track">
         <i style={{ width: `${pct}%` }} />
         <span className="pin" style={{ left: `${pct}%` }} />
         <input

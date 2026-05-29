@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { MODELS } from '@/lib/models'
+import { MODELS, formatSize } from '@/lib/models'
+import { Dropdown, type DropdownOption } from '@/components/Dropdown'
 import { useSettings } from '@/hooks/useSettings'
+import { useApplyTheme } from '@/hooks/useApplyTheme'
 import { Section, Segmented, Slider, Toggle } from './components/controls'
 
 const NAV = [
@@ -11,6 +13,13 @@ const NAV = [
   { id: 'appearance', icon: '🎨', label: 'Appearance' },
   { id: 'about', icon: 'ℹ️', label: 'About' },
 ]
+
+const MODEL_OPTIONS: DropdownOption[] = MODELS.map((m) => ({
+  value: m.id,
+  icon: m.icon,
+  title: `${m.family} · ${m.label}`,
+  sub: `${m.blurb} · ~${formatSize(m.approxDownloadMB)}`,
+}))
 
 function useWebGPU(): boolean | null {
   const [ok, setOk] = useState<boolean | null>(null)
@@ -25,9 +34,7 @@ export function Options() {
   const webgpu = useWebGPU()
   const [cleared, setCleared] = useState(false)
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = settings.theme
-  }, [settings.theme])
+  useApplyTheme(settings.theme)
 
   function clearHistory() {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
@@ -42,36 +49,32 @@ export function Options() {
   return (
     <>
       <div className="topbar">
-        <div className="logo">
-          <span className="gem">💎</span>
-        </div>
+        <div className="logo">💎</div>
         <div className="ttl">
           <h1>Crystal Settings</h1>
           <p>tune your quiet on-device companion</p>
         </div>
-        <div className="privacy soft">
-          <span className="ring" /> running locally · WebGPU · stays with you
+        <div className="saved">
+          <span className="tick">✓</span> changes saved automatically
         </div>
       </div>
 
       <div className="layout">
-        <nav className="soft">
+        <nav className="card">
           {NAV.map((n, i) => (
             <a key={n.id} href={`#${n.id}`} className={i === 0 ? 'on' : ''}>
               <span className="ic">{n.icon}</span> {n.label}
             </a>
           ))}
-          <div className="navfoot">
-            <span className="tick">✓</span> changes saved automatically
-          </div>
         </nav>
 
         <div className="content">
           <Section id="model" icon="🧠" title="Model" subtitle="Choose which Qwen3.5 model answers you. Weights download on first use and are cached.">
-            <Segmented
+            <Dropdown
               value={settings.modelId}
-              onChange={(modelId) => update({ modelId })}
-              options={MODELS.map((m) => ({ value: m.id, label: m.label, blurb: m.family }))}
+              options={MODEL_OPTIONS}
+              ariaLabel="Model"
+              onChange={(modelId) => update({ modelId: modelId as typeof settings.modelId })}
             />
             <div className="mlist">
               {MODELS.map((m) => {
@@ -85,8 +88,8 @@ export function Options() {
                       </div>
                       <div className="msize">
                         {active
-                          ? `active · ~${m.approxDownloadMB} MB · ${settings.precision}`
-                          : `~${m.approxDownloadMB} MB`}
+                          ? `active · ~${formatSize(m.approxDownloadMB)} · ${settings.precision}`
+                          : `~${formatSize(m.approxDownloadMB)}`}
                       </div>
                     </div>
                     {!active ? (
@@ -186,12 +189,13 @@ export function Options() {
           <Section id="appearance" icon="🎨" title="Appearance" subtitle="Make the panel feel like yours.">
             <Segmented
               label="Theme"
+              desc="Defaults to System — Crystal follows your OS light/dark setting automatically."
               value={settings.theme}
               onChange={(theme) => update({ theme })}
               options={[
-                { value: 'calm', label: 'Calm', blurb: 'default' },
-                { value: 'light', label: 'Light', blurb: 'crisp' },
-                { value: 'dark', label: 'Dark', blurb: 'night' },
+                { value: 'system', label: 'System', icon: '🖥️' },
+                { value: 'light', label: 'Light', icon: '☀️' },
+                { value: 'dark', label: 'Dark', icon: '🌙' },
               ]}
             />
             <Segmented

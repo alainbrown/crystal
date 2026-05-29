@@ -12,8 +12,6 @@ export function StatsBar() {
       <span>
         <b>{stats ? stats.tokens : 0}</b> tokens
       </span>
-      <span className="d">·</span>
-      <span>0 sent out</span>
     </div>
   )
 }

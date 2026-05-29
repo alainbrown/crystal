@@ -1,7 +1,7 @@
 import { DEFAULT_MODEL_ID, isModelId, type ModelId } from './models'
 
 export type Precision = 'q4' | 'q8' | 'fp16'
-export type Theme = 'calm' | 'light' | 'dark'
+export type Theme = 'system' | 'light' | 'dark'
 export type TextSize = 'small' | 'medium' | 'large'
 
 export interface Settings {
@@ -26,7 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   precision: 'q4',
   cpuFallback: false,
   rememberConversations: true,
-  theme: 'calm',
+  theme: 'system',
   textSize: 'medium',
 }
 
@@ -50,7 +50,7 @@ export function normalize(raw: unknown): Settings {
   if (r.precision === 'q4' || r.precision === 'q8' || r.precision === 'fp16') s.precision = r.precision
   if (typeof r.cpuFallback === 'boolean') s.cpuFallback = r.cpuFallback
   if (typeof r.rememberConversations === 'boolean') s.rememberConversations = r.rememberConversations
-  if (r.theme === 'calm' || r.theme === 'light' || r.theme === 'dark') s.theme = r.theme
+  if (r.theme === 'system' || r.theme === 'light' || r.theme === 'dark') s.theme = r.theme
   if (r.textSize === 'small' || r.textSize === 'medium' || r.textSize === 'large') s.textSize = r.textSize
   return s
 }

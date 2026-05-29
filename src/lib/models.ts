@@ -7,6 +7,7 @@ export interface ModelInfo {
   id: ModelId
   label: string
   family: string
+  icon: string
   approxDownloadMB: number
   blurb: string
 }
@@ -16,6 +17,7 @@ export const MODELS: readonly ModelInfo[] = [
     id: 'onnx-community/Qwen3.5-0.8B-ONNX-OPT',
     label: '0.8B',
     family: 'Qwen3.5',
+    icon: '💎',
     approxDownloadMB: 480,
     blurb: 'fastest · smallest',
   },
@@ -23,6 +25,7 @@ export const MODELS: readonly ModelInfo[] = [
     id: 'onnx-community/Qwen3.5-2B-ONNX-OPT',
     label: '2B',
     family: 'Qwen3.5',
+    icon: '💠',
     approxDownloadMB: 1300,
     blurb: 'balanced',
   },
@@ -30,6 +33,7 @@ export const MODELS: readonly ModelInfo[] = [
     id: 'onnx-community/Qwen3.5-4B-ONNX-OPT',
     label: '4B',
     family: 'Qwen3.5',
+    icon: '🔷',
     approxDownloadMB: 2600,
     blurb: 'sharpest · heavy',
   },
@@ -45,4 +49,9 @@ export function getModel(id: ModelId): ModelInfo {
 
 export function isModelId(value: unknown): value is ModelId {
   return typeof value === 'string' && MODELS.some((m) => m.id === value)
+}
+
+/** Human-readable download size, e.g. 480 → "480 MB", 1300 → "1.3 GB". */
+export function formatSize(mb: number): string {
+  return mb >= 1000 ? `${(mb / 1000).toFixed(1)} GB` : `${mb} MB`
 }
