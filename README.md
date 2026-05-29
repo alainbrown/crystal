@@ -46,9 +46,9 @@ Load the generated `dist/` as above; CRXJS hot-reloads the panel and options pag
   (`src/worker/protocol.ts`) and serializes load → generate, while `interrupt` bypasses the
   queue to stop a run.
 - **Engine abstraction** (`src/worker/engine.ts`) has two implementations:
-  - `TransformersEngine` — the real one (Qwen3.5 on WebGPU via transformers.js).
-  - `MockEngine` — deterministic, no network/GPU; drives tests and the e2e build.
-  Selected at build time via `VITE_LLM_ENGINE` (`mock` → MockEngine).
+  - `TransformersEngine` — the real one (Qwen3.5 on WebGPU via transformers.js); the worker
+    always uses this.
+  - `MockEngine` — deterministic, no network/GPU; a **unit-test double only**.
 - **State** — a Zustand store (`src/store/chat-store.ts`) owns the worker and turns streamed
   tokens into chat messages; settings persist to `chrome.storage` and sync across surfaces.
 
@@ -90,13 +90,17 @@ Selectable in Settings (default **0.8B**):
 ## Testing
 
 ```bash
-pnpm test            # Vitest unit tests (chat helpers, settings, engine, store wiring)
-pnpm test:e2e        # builds a mock-engine extension (dist-mock/) and runs Playwright
+pnpm test            # Vitest unit tests — no network or GPU
+pnpm test:e2e        # builds dist/ and runs Playwright against the REAL WebGPU engine
 ```
 
-Unit tests cover the testable logic with no network or GPU. The e2e suite loads the unpacked
-extension with the **mocked model** and drives the real UI (real WebGPU inference is
-impractical in CI). See "Known issues".
+Unit tests cover the pure logic (chat helpers, settings, the engine contract via a test-only
+`MockEngine`, and store wiring) with no network or GPU.
+
+The e2e suite loads the real extension build and drives the actual transformers.js/WebGPU
+engine — **no mock**. It therefore needs a WebGPU-capable Chromium and downloads the model on
+first run (slow), so it's meant to run locally on a real machine rather than in a GPU-less CI.
+See "Known issues".
 
 ## Stack
 
@@ -130,5 +134,7 @@ mocks/                   original static design mocks
 - The build emits a redundant ~23 MB `asyncify.wasm` that transformers.js references
   statically; it's never loaded at runtime (we point `wasmPaths` at the jsep build). Harmless
   dead weight in `dist/`; could be stripped with a small Vite plugin later.
-- The Playwright e2e suite is fully wired, but MV3 service-worker registration under headless
-  Chromium needs more work for the `extensionId` fixture to resolve reliably in CI.
+- The Playwright e2e suite runs the **real** engine, so it needs a WebGPU-capable machine and
+  a first-run model download — it is not expected to pass in a GPU-less/headless CI.
+  Separately, MV3 service-worker registration under headless Chromium still needs work for the
+  `extensionId` fixture to resolve there.

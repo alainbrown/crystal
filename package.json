@@ -11,8 +11,7 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:mock": "vite build --outDir dist-mock --mode mock",
-    "pretest:e2e": "pnpm build:mock",
+    "pretest:e2e": "pnpm build",
     "test:e2e": "playwright test"
   },
   "dependencies": {

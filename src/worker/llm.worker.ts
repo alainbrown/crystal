@@ -1,22 +1,17 @@
 // LLM web worker. Owns the engine, runs load/generate off the main thread,
-// and speaks the typed protocol. Engine is selected at build time:
-// VITE_LLM_ENGINE=mock uses the deterministic MockEngine (tests / preview).
+// and speaks the typed protocol. Always uses the real WebGPU engine — the
+// MockEngine is a unit-test double only (see tests/unit).
 
 /// <reference lib="webworker" />
 import type { LLMEngine } from './engine'
-import { MockEngine } from './mock-engine'
 import type { RequestMessage, ResponseMessage } from './protocol'
-
-const USE_MOCK = import.meta.env.VITE_LLM_ENGINE === 'mock'
 
 let enginePromise: Promise<LLMEngine> | null = null
 
 async function getEngine(): Promise<LLMEngine> {
   if (!enginePromise) {
-    enginePromise = USE_MOCK
-      ? Promise.resolve(new MockEngine())
-      : // Lazy-import the heavy real engine only when actually needed.
-        import('./transformers-engine').then((m) => new m.TransformersEngine())
+    // Lazy-import the heavy real engine only when actually needed.
+    enginePromise = import('./transformers-engine').then((m) => new m.TransformersEngine())
   }
   return enginePromise
 }
