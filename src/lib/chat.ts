@@ -1,3 +1,5 @@
+import type { ModelId } from './models'
+
 export type Role = 'system' | 'user' | 'assistant'
 
 export interface ChatMessage {
@@ -12,6 +14,24 @@ export interface ChatMessage {
 export interface ModelMessage {
   role: Role
   content: string
+}
+
+/** A persisted chat session: its messages plus the metadata the history list needs. */
+export interface Conversation {
+  id: string
+  title: string
+  messages: ChatMessage[]
+  modelId: ModelId
+  createdAt: number
+  updatedAt: number
+}
+
+/** Derive a one-line title from the first non-empty user message. */
+export function conversationTitle(messages: ChatMessage[]): string {
+  const firstUser = messages.find((m) => m.role === 'user' && m.content.trim().length > 0)
+  const raw = firstUser?.content.trim().replace(/\s+/g, ' ') ?? ''
+  if (!raw) return 'New chat'
+  return raw.length > 60 ? `${raw.slice(0, 60).trimEnd()}…` : raw
 }
 
 let counter = 0
