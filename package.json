@@ -12,6 +12,7 @@
     "typecheck": "tsc -b --noEmit",
     "test": "pnpm test:unit && pnpm test:e2e",
     "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "pretest:e2e": "pnpm build",
     "test:e2e": "playwright test"
@@ -42,6 +43,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "4.1.7",
     "jsdom": "^29.1.1",
     "remotion": "^4.0.468",
     "typescript": "^6.0.3",
