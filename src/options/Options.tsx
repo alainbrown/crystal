@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import logoUrl from '@/assets/logo.svg'
 import { MODELS, formatSize, getModel } from '@/lib/models'
-import { Dropdown, type DropdownOption } from '@/components/Dropdown'
 import { useSettings } from '@/hooks/useSettings'
 import { useApplyTheme } from '@/hooks/useApplyTheme'
 import { clearConversations } from '@/lib/conversations'
@@ -15,13 +14,6 @@ const NAV = [
   { id: 'appearance', icon: '🎨', label: 'Appearance' },
   { id: 'about', icon: 'ℹ️', label: 'About' },
 ]
-
-const MODEL_OPTIONS: DropdownOption[] = MODELS.map((m) => ({
-  value: m.id,
-  icon: m.icon,
-  title: `${m.family} · ${m.label}`,
-  sub: `${m.blurb} · ~${formatSize(m.approxDownloadMB)}`,
-}))
 
 function useWebGPU(): boolean | null {
   const [ok, setOk] = useState<boolean | null>(null)
@@ -70,34 +62,30 @@ export function Options() {
 
         <div className="content">
           <Section id="model" icon="🧠" title="Model" subtitle="Choose which Qwen3.5 model answers you. Weights download on first use and are cached.">
-            <Dropdown
-              value={settings.modelId}
-              options={MODEL_OPTIONS}
-              ariaLabel="Model"
-              onChange={(modelId) => update({ modelId: modelId as typeof settings.modelId })}
-            />
-            <div className="mlist">
+            <div className="mlist" role="radiogroup" aria-label="Model">
               {MODELS.map((m) => {
                 const active = m.id === settings.modelId
                 return (
-                  <div className="mfile" key={m.id}>
+                  <button
+                    key={m.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    className={`mfile${active ? ' active' : ''}`}
+                    onClick={() => update({ modelId: m.id })}
+                  >
                     <div className={`mdot ${active ? 'cached' : 'empty'}`}>{active ? '✓' : '↓'}</div>
-                    <div>
+                    <div className="minfo">
                       <div className="mname">
                         {m.family} {m.label}
                       </div>
                       <div className="msize">
-                        {active
-                          ? `active · ~${formatSize(m.approxDownloadMB)} · ${settings.precision}`
-                          : `~${formatSize(m.approxDownloadMB)}`}
+                        {m.blurb} · ~{formatSize(m.approxDownloadMB)}
+                        {active ? ` · ${settings.precision}` : ''}
                       </div>
                     </div>
-                    {!active ? (
-                      <button className="mact dl" onClick={() => update({ modelId: m.id })}>
-                        Use
-                      </button>
-                    ) : null}
-                  </div>
+                    <span className={`mtag${active ? ' on' : ''}`}>{active ? 'Active' : 'Use'}</span>
+                  </button>
                 )
               })}
             </div>

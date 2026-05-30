@@ -71,19 +71,26 @@ nav a.on { color: var(--accent); background: var(--accent-soft); }
 .track .pin { position: absolute; top: 50%; width: 20px; height: 20px; border-radius: 50%; transform: translate(-50%, -50%); background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 4px rgba(30, 36, 55, 0.2); pointer-events: none; }
 .track input[type='range'] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 
-.mlist { margin-top: 8px; }
-.mfile { display: flex; align-items: center; gap: 13px; padding: 13px 2px; }
-.mfile + .mfile { border-top: 1px solid var(--line); }
+.mlist { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.mfile {
+  width: 100%; display: flex; align-items: center; gap: 13px; padding: 11px 12px;
+  border: 1px solid var(--line); border-radius: 13px; background: var(--bg2);
+  font: inherit; text-align: left; color: var(--ink); cursor: pointer; transition: 0.15s;
+}
+.mfile:hover { border-color: var(--accent); }
+.mfile.active { border-color: var(--accent); background: var(--accent-soft); cursor: default; }
 .mdot { width: 38px; height: 38px; border-radius: 11px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 .mdot.cached { color: var(--ok); background: rgba(95, 174, 156, 0.16); }
 .mdot.empty { color: var(--ink-soft); background: var(--field); }
+.minfo { flex: 1; min-width: 0; }
 .mfile .mname { font-size: 13.5px; font-weight: 800; }
 .mfile .msize { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-top: 2px; }
-.mfile .mact {
-  margin-left: auto; border: 1px solid var(--line); cursor: pointer; font-size: 11.5px; font-weight: 800;
-  padding: 8px 15px; border-radius: 10px; color: var(--ink-soft); background: var(--bg2);
+.mtag {
+  margin-left: auto; flex: none; font-size: 11.5px; font-weight: 800; color: var(--accent);
+  padding: 6px 13px; border: 1px solid var(--accent); border-radius: 9px; transition: 0.15s;
 }
-.mfile .mact.dl { color: var(--accent); border-color: var(--accent); }
+.mfile:hover:not(.active) .mtag { background: var(--accent); color: #fff; }
+.mtag.on { border-color: transparent; padding: 0; background: transparent; }
 
 .btn-soft { border: 1px solid var(--line); cursor: pointer; margin-top: 16px; padding: 12px 20px; border-radius: 12px; font-family: inherit; font-size: 13px; font-weight: 800; background: var(--bg2); color: var(--ink); }
 .btn-soft.warm { color: var(--warm); border-color: var(--warm); }
