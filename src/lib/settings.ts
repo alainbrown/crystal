@@ -1,6 +1,8 @@
 import { DEFAULT_MODEL_ID, getModel, isModelId, type ModelId } from './models'
 
-export type Precision = 'q4' | 'q8' | 'fp16'
+// q4f16 = 4-bit weights with fp16 compute: smaller and faster on WebGPU than plain q4
+// (which uses fp32 compute), with negligible quality loss — hence the default.
+export type Precision = 'q4' | 'q4f16' | 'q8' | 'fp16'
 export type Theme = 'system' | 'light' | 'dark'
 export type TextSize = 'small' | 'medium' | 'large'
 
@@ -28,7 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // the Reasoning toggle in settings.
   reasoning: false,
   stream: true,
-  precision: 'q4',
+  precision: 'q4f16',
   cpuFallback: false,
   rememberConversations: true,
   theme: 'system',
@@ -54,7 +56,14 @@ export function normalize(raw: unknown): Settings {
   }
   if (typeof r.reasoning === 'boolean') s.reasoning = r.reasoning
   if (typeof r.stream === 'boolean') s.stream = r.stream
-  if (r.precision === 'q4' || r.precision === 'q8' || r.precision === 'fp16') s.precision = r.precision
+  if (
+    r.precision === 'q4' ||
+    r.precision === 'q4f16' ||
+    r.precision === 'q8' ||
+    r.precision === 'fp16'
+  ) {
+    s.precision = r.precision
+  }
   if (typeof r.cpuFallback === 'boolean') s.cpuFallback = r.cpuFallback
   if (typeof r.rememberConversations === 'boolean') s.rememberConversations = r.rememberConversations
   if (r.theme === 'system' || r.theme === 'light' || r.theme === 'dark') s.theme = r.theme
