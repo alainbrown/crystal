@@ -61,7 +61,18 @@ Crystal requests only the permissions it needs to function:
 
 - **`sidePanel`** — to display the chat UI in Chrome's side panel.
 - **`storage`** — to save your settings and (optionally) conversations locally.
+- **`contextMenus`** — to add the "Send to Crystal" right-click menu (screenshot
+  visible area, select a region, or send page text to the chat).
+- **`activeTab`** — granted only for the tab you right-click. It lets Crystal read
+  that one page when you explicitly ask it to, without any standing access to your
+  browsing. No page is ever touched unless you invoke the menu on it.
+- **`scripting`** — to inject the one-shot region-selection overlay and the page-text
+  extractor into the active tab when you choose those capture actions. Nothing is
+  injected until you trigger it.
 - **Host access to Hugging Face domains** — solely to download model weights.
+
+The capture actions process everything locally: a screenshot or the extracted page
+text is handed to the on-device model and is never uploaded.
 
 ## Children's privacy
 
