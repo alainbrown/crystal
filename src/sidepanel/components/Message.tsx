@@ -1,5 +1,6 @@
 import type { ChatMessage } from '@/lib/chat'
 import { ThinkingBlock } from './ThinkingBlock'
+import { Markdown } from './Markdown'
 
 export function Message({ message }: { message: ChatMessage }) {
   if (message.role === 'user') {
@@ -35,7 +36,7 @@ export function Message({ message }: { message: ChatMessage }) {
       <div className="lbl">crystal</div>
       <div className="bubble from-bot">
         {message.reasoning ? <ThinkingBlock reasoning={message.reasoning} /> : null}
-        {message.content}
+        {message.content ? <Markdown>{message.content}</Markdown> : null}
         {showTyping ? (
           <span className="typing" aria-label="thinking">
             <i />
