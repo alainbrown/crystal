@@ -1,7 +1,7 @@
 import { env } from '@huggingface/transformers'
 import { TransformersEngine } from '@/worker/transformers-engine'
 import type { LLMEngine } from '@/worker/engine'
-import type { RequestMessage, ResponseMessage } from '@/worker/protocol'
+import type { LoadOptions, RequestMessage, ResponseMessage } from '@/worker/protocol'
 
 env.allowLocalModels = false
 
@@ -21,6 +21,11 @@ let engine: LLMEngine | null = null
 function getEngine(): LLMEngine {
   return (engine ??= new TransformersEngine())
 }
+
+// What the current engine has loaded, so a redundant `load` (e.g. two quick
+// sends after the worker restarts) short-circuits instead of re-initializing.
+let loaded: { modelId: string; key: string } | null = null
+const optionsKey = (o: LoadOptions) => `${o.precision}:${o.cpuFallback}`
 
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name !== 'crystal-llm') return
@@ -50,10 +55,17 @@ async function handle(
   try {
     switch (msg.type) {
       case 'load': {
+        const key = optionsKey(msg.options)
+        if (loaded && loaded.modelId === msg.modelId && loaded.key === key) {
+          post({ type: 'ready', modelId: msg.modelId })
+          post({ type: 'status', status: 'ready' })
+          break
+        }
         post({ type: 'status', status: 'loading' })
         await getEngine().load(msg.modelId, msg.options, {
           onProgress: (data) => post({ type: 'progress', data }),
         })
+        loaded = { modelId: msg.modelId, key }
         post({ type: 'ready', modelId: msg.modelId })
         post({ type: 'status', status: 'ready' })
         break
@@ -76,6 +88,7 @@ async function handle(
       case 'dispose': {
         getEngine().dispose()
         engine = null
+        loaded = null
         post({ type: 'status', status: 'idle' })
         break
       }

@@ -49,6 +49,10 @@ export interface ChatState {
 let clientFactory: () => WorkerClient = () => new WorkerClient()
 export function __setClientFactory(f: () => WorkerClient) {
   clientFactory = f
+  // Drop any client from a previous factory so the next ensureClient() builds a
+  // fresh one. Test-only hook; production never swaps the factory.
+  client?.terminate()
+  client = null
 }
 
 let client: WorkerClient | null = null
@@ -131,10 +135,33 @@ export const useChatStore = create<ChatState>((set, get) => {
     }
   }
 
+  // The MV3 service worker that owns the loaded model is terminated after ~30s
+  // idle. When that happens the port disconnects: forget the loaded model so the
+  // next send transparently reloads it (from browser cache, no re-download)
+  // instead of generating against an empty worker and hitting "Model not loaded".
+  // Without this, loadedModelId stays stale and the only recovery is reloading
+  // the extension.
+  function handleDisconnect() {
+    set({ loadedModelId: null })
+    // If a generation was streaming when the worker died, it will never finish —
+    // stop the spinner and surface a soft error so the user can resend.
+    if (get().activeRequestId) {
+      patchAssistant((m) => ({ ...m, streaming: false }))
+      set({
+        status: 'idle',
+        activeRequestId: null,
+        error: 'The model worker stopped before finishing. Send your message again to retry.',
+      })
+    } else if (get().status !== 'error') {
+      set({ status: 'idle' })
+    }
+  }
+
   function ensureClient(): WorkerClient {
     if (!client) {
       client = clientFactory()
       client.on(handle)
+      client.onDisconnect?.(handleDisconnect)
     }
     return client
   }
