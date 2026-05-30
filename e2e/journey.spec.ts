@@ -64,9 +64,15 @@ test('crystal full journey on the loaded extension', async () => {
       const bot = page.locator('.from-bot').last()
       await expect(bot).not.toBeEmpty({ timeout: 9 * 60_000 })
 
-      await expect(page.locator('.stats')).toContainText('tok/s')
-      const tokens = await page.locator('.stats b').nth(1).innerText()
-      expect(Number(tokens)).toBeGreaterThan(0)
+      // The " tok/s" / " tokens" labels are static, so they're present before
+      // generation finishes — they can't gate on the stats being ready. The
+      // token count renders its `0` fallback until the `complete` message lands,
+      // so poll the real number until it settles above zero.
+      await expect
+        .poll(async () => Number(await page.locator('.stats b').nth(1).innerText()), {
+          timeout: 9 * 60_000,
+        })
+        .toBeGreaterThan(0)
     })
 
     const options = await ctx.newPage()
