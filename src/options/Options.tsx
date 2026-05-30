@@ -129,12 +129,6 @@ export function Options() {
               checked={settings.reasoning}
               onChange={(reasoning) => update({ reasoning })}
             />
-            <Toggle
-              label="Stream responses"
-              desc="Show words as they're generated instead of all at once."
-              checked={settings.stream}
-              onChange={(stream) => update({ stream })}
-            />
           </Section>
 
           <Section id="compute" icon="⚡" title="Compute" subtitle="Where and how the math runs on your hardware.">
@@ -198,16 +192,6 @@ export function Options() {
                 { value: 'system', label: 'System', icon: '🖥️' },
                 { value: 'light', label: 'Light', icon: '☀️' },
                 { value: 'dark', label: 'Dark', icon: '🌙' },
-              ]}
-            />
-            <Segmented
-              label="Text size"
-              value={settings.textSize}
-              onChange={(textSize) => update({ textSize })}
-              options={[
-                { value: 'small', label: 'Small' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'large', label: 'Large' },
               ]}
             />
           </Section>

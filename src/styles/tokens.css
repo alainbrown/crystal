@@ -57,10 +57,6 @@
   }
 }
 
-[data-size='small'] { --fs: 12px; }
-[data-size='medium'] { --fs: 13px; }
-[data-size='large'] { --fs: 15px; }
-
 * {
   box-sizing: border-box;
   margin: 0;

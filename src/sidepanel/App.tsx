@@ -10,7 +10,6 @@ import { StatsBar } from './components/StatsBar'
 export function App() {
   const init = useChatStore((s) => s.init)
   const theme = useChatStore((s) => s.settings.theme)
-  const textSize = useChatStore((s) => s.settings.textSize)
   const messages = useChatStore((s) => s.messages)
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -19,10 +18,6 @@ export function App() {
   }, [init])
 
   useApplyTheme(theme)
-
-  useEffect(() => {
-    document.documentElement.dataset.size = textSize
-  }, [textSize])
 
   useEffect(() => {
     const el = scrollRef.current

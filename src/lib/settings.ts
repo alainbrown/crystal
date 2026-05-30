@@ -4,19 +4,16 @@ import { DEFAULT_MODEL_ID, getModel, isModelId, type ModelId } from './models'
 // (which uses fp32 compute), with negligible quality loss — hence the default.
 export type Precision = 'q4' | 'q4f16' | 'q8' | 'fp16'
 export type Theme = 'system' | 'light' | 'dark'
-export type TextSize = 'small' | 'medium' | 'large'
 
 export interface Settings {
   modelId: ModelId
   temperature: number
   maxTokens: number
   reasoning: boolean
-  stream: boolean
   precision: Precision
   cpuFallback: boolean
   rememberConversations: boolean
   theme: Theme
-  textSize: TextSize
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -29,12 +26,10 @@ export const DEFAULT_SETTINGS: Settings = {
   // repetition penalty, so small models can loop inside <think>. Re-enable via
   // the Reasoning toggle in settings.
   reasoning: false,
-  stream: true,
   precision: 'q4f16',
   cpuFallback: false,
   rememberConversations: true,
   theme: 'system',
-  textSize: 'medium',
 }
 
 const STORAGE_KEY = 'crystal.settings'
@@ -55,7 +50,6 @@ export function normalize(raw: unknown): Settings {
     s.maxTokens = clamp(Math.round(r.maxTokens), 1, getModel(s.modelId).contextTokens)
   }
   if (typeof r.reasoning === 'boolean') s.reasoning = r.reasoning
-  if (typeof r.stream === 'boolean') s.stream = r.stream
   if (
     r.precision === 'q4' ||
     r.precision === 'q4f16' ||
@@ -67,7 +61,6 @@ export function normalize(raw: unknown): Settings {
   if (typeof r.cpuFallback === 'boolean') s.cpuFallback = r.cpuFallback
   if (typeof r.rememberConversations === 'boolean') s.rememberConversations = r.rememberConversations
   if (r.theme === 'system' || r.theme === 'light' || r.theme === 'dark') s.theme = r.theme
-  if (r.textSize === 'small' || r.textSize === 'medium' || r.textSize === 'large') s.textSize = r.textSize
   return s
 }
 

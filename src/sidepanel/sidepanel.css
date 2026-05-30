@@ -1,4 +1,4 @@
-body { background: var(--bg); font-size: var(--fs, 13px); }
+body { background: var(--bg); font-size: 13px; }
 
 .panel {
   width: 100%;
