@@ -158,7 +158,7 @@ export function Options() {
               value={settings.precision}
               onChange={(precision) => update({ precision })}
               options={[
-                { value: 'q4', label: 'q4', blurb: 'smallest' },
+                { value: 'q4', label: 'q4', blurb: 'most compatible' },
                 { value: 'q4f16', label: 'q4f16', blurb: 'recommended' },
                 { value: 'q8', label: 'q8', blurb: 'balanced' },
                 { value: 'fp16', label: 'fp16', blurb: 'sharpest' },
