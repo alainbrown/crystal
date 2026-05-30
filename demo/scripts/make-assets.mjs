@@ -15,6 +15,7 @@ const svg = (p) => 'data:image/svg+xml;base64,' + readFileSync(path.join(DIR, '.
 const LOGO = svg('src/assets/logo.svg')
 const SHOTS = {
   empty: asset('shot-empty.png'),
+  capture: asset('shot-capture.png'),
   stream: asset('shot-stream.png'),
   reason: asset('shot-reason.png'),
   dropdown: asset('shot-dropdown.png'),
@@ -43,9 +44,9 @@ const HEAD = `
 // Five marketing screenshots @1280x800: headline column + panel on the right.
 const SCREENS = [
   { key: 'empty', h: 'Private AI,<br>right in your sidebar', s: 'A chat panel that lives in Chrome and runs entirely on your own machine.' },
-  { key: 'stream', h: 'Runs 100%<br>on your device', s: 'Qwen3.5 streams answers in-browser via WebGPU — no server, no API key.' },
+  { key: 'capture', h: 'Send a page<br>or a screenshot', s: 'Right-click to drop the page you’re reading — or a screenshot of anything — into the chat.' },
+  { key: 'stream', h: 'Rich, formatted<br>answers', s: 'Markdown replies — headings, lists, code — streamed in-browser via WebGPU.' },
   { key: 'reason', h: 'Watch it<br>think', s: 'Crystal shows its reasoning, then its answer — all computed locally.' },
-  { key: 'dropdown', h: 'Switch models<br>in a click', s: 'Pick 0.8B, 2B, or 4B — trade speed for smarts whenever you like.' },
   { key: 'stats', h: 'Nothing leaves<br>this device', s: 'Private by design. Your words never touch a network. They stay yours.' },
 ]
 

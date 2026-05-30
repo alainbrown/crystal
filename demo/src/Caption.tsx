@@ -3,8 +3,10 @@ import { CAPTIONS, type CaptionId } from './timeline'
 
 const TEXT: Record<Exclude<CaptionId, null>, string> = {
   sidebar: 'Private AI, right in your sidebar',
-  type: 'Just type — nothing leaves your device',
-  think: 'Watch it reason, then answer — 100% on-device',
+  page: 'Send the page you’re reading',
+  shot: '…or a screenshot of anything',
+  ask: 'Then just ask',
+  think: 'Rich, formatted answers — 100% on-device',
   models: 'Swap models in a single click',
 }
 

@@ -13,7 +13,7 @@ export function BrowserFrame({ panel }: { panel: ReactNode }) {
         </div>
         <div className="bw-omni">
           <span className="bw-lock">🔒</span>
-          <span>app.crystal.local</span>
+          <span>research.example.org/on-device-ai-2026</span>
         </div>
         <div className="bw-ext">
           <img src={logoUrl} alt="" />

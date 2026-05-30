@@ -28,11 +28,18 @@ export function Panel() {
   const frame = useCurrentFrame()
   const t = snapshotAt(frame)
   const panelRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  // Subscribe to messages so this component re-renders once the store update
+  // below has flowed into the transcript — the scroll effect then measures the
+  // up-to-date content height.
+  const messages = useChatStore((s) => s.messages)
 
   // Push scripted state into the real store before paint (scrub-safe: each
   // frame sets an absolute snapshot, never an increment). The reasoning
   // <details> is forced visible via CSS in demo.css (see `.think-body`), since
   // store-driven re-renders would reset an imperatively-opened element.
+  // Keyed on `frame` (not every render): pushing state re-renders this now-
+  // subscribed component, and a no-deps effect would setState → re-render → loop.
   useLayoutEffect(() => {
     useChatStore.setState({
       messages: t.messages,
@@ -41,7 +48,15 @@ export function Panel() {
       settings: { ...DEFAULT_SETTINGS, modelId: t.modelId },
       loadedModelId: t.modelId,
     })
-  })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frame])
+
+  // Keep the transcript pinned to the latest tokens as the answer streams —
+  // mirrors the production side panel (App.tsx), so long replies scroll into view.
+  useLayoutEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [messages])
 
   return (
     <div className="panel demo-panel" data-theme="light" ref={panelRef}>
@@ -59,8 +74,8 @@ export function Panel() {
           ⚙
         </button>
       </header>
-      <Transcript />
-      <Composer value={t.typedText} />
+      <Transcript ref={scrollRef} />
+      <Composer value={t.typedText} images={t.composerImages} contexts={t.composerContexts} />
       <StatsBar />
     </div>
   )

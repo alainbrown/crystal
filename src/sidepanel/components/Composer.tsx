@@ -5,16 +5,22 @@ import { pdfToImages } from '@/lib/pdf'
 import { subscribePendingDrop, takePendingDrop } from '@/lib/capture'
 import { toPageContext, type PageContext } from '@/lib/chat'
 
-export function Composer({ value: controlledValue }: { value?: string } = {}) {
+export function Composer({
+  value: controlledValue,
+  images: controlledImages,
+  contexts: controlledContexts,
+}: { value?: string; images?: string[]; contexts?: PageContext[] } = {}) {
   const [localText, setText] = useState('')
-  const [images, setImages] = useState<string[]>([])
-  const [contexts, setContexts] = useState<PageContext[]>([])
+  const [localImages, setImages] = useState<string[]>([])
+  const [localContexts, setContexts] = useState<PageContext[]>([])
   const [note, setNote] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
-  // `value`, when provided, drives the field from outside (the Remotion demo
-  // types into it deterministically). Production renders <Composer/> with no
-  // props, so behavior is unchanged.
+  // `value`/`images`/`contexts`, when provided, drive the field from outside (the
+  // Remotion demo scripts them deterministically per-frame). Production renders
+  // <Composer/> with no props, so behavior is unchanged.
   const text = controlledValue ?? localText
+  const images = controlledImages ?? localImages
+  const contexts = controlledContexts ?? localContexts
   const send = useChatStore((s) => s.send)
   const stop = useChatStore((s) => s.stop)
   const status = useChatStore((s) => s.status)

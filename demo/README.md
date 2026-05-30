@@ -20,9 +20,10 @@ service worker), so the demo drives the UI deterministically instead:
   alias in `remotion.config.ts`), guaranteeing a **single React instance** — required
   for the real components' hooks to work.
 
-Two tiny, backwards-compatible seams were added to the extension so their internal
+A few tiny, backwards-compatible seams were added to the extension so their internal
 state can be driven on cue (production renders them with no props → unchanged):
-`Composer` accepts an optional `value`, `Dropdown` an optional `open`.
+`Composer` accepts optional `value` / `images` / `contexts` (to script the typed text
+plus "Send screenshot" and "Send page text" attachments), and `Dropdown` an optional `open`.
 
 ## Commands
 
@@ -32,11 +33,11 @@ Run from this `demo/` directory.
 pnpm --dir .. install        # if you haven't already (installs Remotion at the root)
 
 npm run studio               # interactive preview at http://localhost:3000
-npm run render:mp4           # → out/crystal-demo.mp4   (1920×1080, ~24s)
-npm run render:gif           # → out/crystal-demo.gif   (looping, README-sized)
+npm run render:mp4           # → out/crystal-demo.mp4   (1920×1080, ~27s)
+npm run render:gif           # → out/crystal-demo.gif   (looping, 960×540)
 
 # Marketing stills (panel-only "Shot" composition) + composited store assets:
-npx remotion still src/index.ts Shot out/shot-stream.png --frame=380
+npx remotion still src/index.ts Shot out/shot-stream.png --frame=520
 node scripts/make-assets.mjs # → out/cws/*.png  (screenshots, marquee, tiles, thumb)
 ```
 
@@ -53,7 +54,7 @@ docker compose -f docker-compose.yml run --rm render   # outputs to demo/out/
 | File | Use |
 |------|-----|
 | `crystal-demo.mp4` | YouTube upload (1920×1080) |
-| `crystal-demo.gif` | README embed (806×454, looping) |
+| `crystal-demo.gif` | README embed (960×540, looping) |
 | `youtube-thumb-1280x720.png` | YouTube thumbnail |
 | `screenshot-1..5-*.png` | Chrome Web Store screenshots (1280×800) |
 | `promo-marquee-1400x560.png` | CWS marquee promo tile |

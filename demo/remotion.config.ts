@@ -10,6 +10,17 @@ Config.setConcurrency(1) // deterministic, sequential render (single React tree)
 
 Config.overrideWebpackConfig((current) => ({
   ...current,
+  module: {
+    ...current.module,
+    // Honour Vite's `?url` import suffix (used by src/lib/pdf.ts for the pdf.js
+    // worker): emit the target as a static asset so the import yields a URL
+    // string. The worker never actually runs in the demo — this just lets the
+    // module load without tripping pdf.js's `workerSrc` string check.
+    rules: [
+      ...(current.module?.rules ?? []),
+      { resourceQuery: /url/, type: 'asset/resource' },
+    ],
+  },
   resolve: {
     ...current.resolve,
     alias: {
