@@ -53,6 +53,26 @@ describe('MockEngine', () => {
     expect(res.reasoning).toBeUndefined()
   })
 
+  it('acknowledges attached images from multimodal content parts', async () => {
+    const engine = new MockEngine({ stepMs: 0 })
+    await engine.load(DEFAULT_MODEL_ID, loadOpts, { onProgress: () => {} })
+    const res = await engine.generate(
+      [
+        {
+          role: 'user',
+          content: [
+            { type: 'image', image: 'data:a' },
+            { type: 'text', text: 'describe' },
+          ],
+        },
+      ],
+      { temperature: 0.7, maxTokens: 512, reasoning: false },
+      { onToken: () => {} },
+    )
+    expect(res.answer).toContain('1 attached image')
+    expect(res.answer).toContain('describe')
+  })
+
   it('stops early when interrupted', async () => {
     const engine = new MockEngine({ stepMs: 1 })
     await engine.load(DEFAULT_MODEL_ID, loadOpts, { onProgress: () => {} })

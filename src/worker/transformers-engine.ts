@@ -2,6 +2,7 @@ import {
   env,
   AutoProcessor,
   AutoModelForImageTextToText,
+  RawImage,
   TextStreamer,
   StoppingCriteriaList,
   InterruptableStoppingCriteria,
@@ -29,6 +30,37 @@ env.useBrowserCache = true
 const REPETITION_PENALTY = 1.1
 
 const CLOSE_THINK = '</think>'
+
+// The chat template only needs to know an image is *present* (it emits a placeholder
+// token); the pixels are handed to the processor separately. Split our ModelMessages
+// into the template shape plus the ordered list of decoded images. Order matters: the
+// Nth placeholder in the rendered text binds to the Nth image passed to processor().
+type TemplatePart = { type: 'image' } | { type: 'text'; text: string }
+type TemplateMessage = { role: string; content: string | TemplatePart[] }
+
+async function prepareInputs(
+  messages: ModelMessage[],
+): Promise<{ templateMessages: TemplateMessage[]; images: RawImage[] }> {
+  const images: RawImage[] = []
+  const templateMessages: TemplateMessage[] = []
+  for (const m of messages) {
+    if (typeof m.content === 'string') {
+      templateMessages.push({ role: m.role, content: m.content })
+      continue
+    }
+    const parts: TemplatePart[] = []
+    for (const part of m.content) {
+      if (part.type === 'image') {
+        images.push(await RawImage.read(part.image)) // data URLs fetch fine in the SW
+        parts.push({ type: 'image' })
+      } else {
+        parts.push({ type: 'text', text: part.text })
+      }
+    }
+    templateMessages.push({ role: m.role, content: parts })
+  }
+  return { templateMessages, images }
+}
 
 type DTypeMap = Record<'embed_tokens' | 'vision_encoder' | 'decoder_model_merged', Precision | 'fp16'>
 
@@ -71,10 +103,11 @@ export class TransformersEngine implements LLMEngine {
     for (const device of devices) {
       try {
         // Qwen3.5 is a multimodal (VL) model: load the image-text-to-text model plus its
-        // processor. Inference here is text-only, but the processor's two-step path
-        // (apply_chat_template → string → processor(text)) is the documented way to build
-        // valid inputs for this model. Running in the service worker lets onnxruntime-web
-        // resolve its WebGPU backend as same-origin assets (no blob: worker → CSP-safe).
+        // processor. The processor's two-step path (apply_chat_template → string →
+        // processor(text[, images])) is the documented way to build valid inputs — text
+        // and, when the user attaches them, images. Running in the service worker lets
+        // onnxruntime-web resolve its WebGPU backend as same-origin assets (no blob:
+        // worker → CSP-safe).
         const [processor, model] = await Promise.all([
           AutoProcessor.from_pretrained(modelId, { progress_callback }),
           AutoModelForImageTextToText.from_pretrained(modelId, {
@@ -109,11 +142,17 @@ export class TransformersEngine implements LLMEngine {
     // enable_thinking drives the Qwen3.5 template: true pre-opens <think> (the model
     // reasons, emits </think>, then answers); false emits a pre-closed <think></think>
     // so the model answers directly with no reasoning.
-    const text = processor.apply_chat_template(messages, {
-      add_generation_prompt: true,
-      enable_thinking: params.reasoning,
-    } as Parameters<Processor['apply_chat_template']>[1]) as string
-    const inputs = await processor(text)
+    const { templateMessages, images } = await prepareInputs(messages)
+    const text = processor.apply_chat_template(
+      templateMessages as Parameters<Processor['apply_chat_template']>[0],
+      {
+        add_generation_prompt: true,
+        enable_thinking: params.reasoning,
+      } as Parameters<Processor['apply_chat_template']>[1],
+    ) as string
+    // Pass decoded images only when present; text-only turns keep the original
+    // single-argument path the model has always used.
+    const inputs = images.length ? await processor(text, images) : await processor(text)
 
     let reasoning = ''
     let answer = ''

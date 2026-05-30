@@ -21,10 +21,14 @@ function normalizeMessage(raw: unknown): ChatMessage | null {
   const m = raw as Record<string, unknown>
   if (!ROLES.includes(m.role as Role)) return null
   if (typeof m.content !== 'string') return null
+  const images = Array.isArray(m.images)
+    ? m.images.filter((x): x is string => typeof x === 'string')
+    : undefined
   return {
     id: typeof m.id === 'string' ? m.id : `m_${Math.round(Number(m.createdAt) || 0)}`,
     role: m.role as Role,
     content: m.content,
+    images: images && images.length ? images : undefined,
     reasoning: typeof m.reasoning === 'string' ? m.reasoning : undefined,
     createdAt: typeof m.createdAt === 'number' ? m.createdAt : 0,
   }

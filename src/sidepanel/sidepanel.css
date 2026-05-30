@@ -102,7 +102,30 @@ details.think[open] summary .ch { transform: rotate(90deg); }
 
 /* COMPOSER */
 .composer { padding: 10px 16px 14px; border-top: 1px solid var(--line); }
-.field { border-radius: 16px; background: var(--field); padding: 5px 5px 5px 15px; display: flex; align-items: flex-end; gap: 8px; }
+.field { border-radius: 16px; background: var(--field); padding: 5px 5px 5px 6px; display: flex; align-items: flex-end; gap: 6px; }
+
+.plusbtn {
+  width: 34px; height: 34px; flex: none; border: 0; border-radius: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; line-height: 1;
+  font-size: 22px; font-weight: 300; color: var(--ink-soft); background: transparent; transition: 0.15s;
+}
+.plusbtn:hover { background: var(--bg2); color: var(--ink); }
+
+.attachments { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 4px 8px; }
+.attach {
+  position: relative; width: 56px; height: 56px; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--field);
+}
+.attach img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.attach-x {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border: 0; padding: 0;
+  border-radius: 50%; cursor: pointer; background: rgba(0, 0, 0, 0.6); color: #fff;
+  font-size: 13px; line-height: 1; display: flex; align-items: center; justify-content: center;
+}
+.attach-x:hover { background: rgba(0, 0, 0, 0.8); }
+
+.bubble-images { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.bubble-images img { max-width: 190px; max-height: 190px; border-radius: 10px; display: block; }
 textarea {
   flex: 1; border: 0; background: transparent; outline: none; resize: none;
   font-family: inherit; font-size: 13px; font-weight: 600; color: var(--ink);

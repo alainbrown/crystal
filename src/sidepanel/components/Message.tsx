@@ -6,7 +6,16 @@ export function Message({ message }: { message: ChatMessage }) {
     return (
       <div>
         <div className="lbl r">you</div>
-        <div className="bubble from-user">{message.content}</div>
+        <div className="bubble from-user">
+          {message.images?.length ? (
+            <div className="bubble-images">
+              {message.images.map((src, i) => (
+                <img key={i} src={src} alt="attachment" />
+              ))}
+            </div>
+          ) : null}
+          {message.content}
+        </div>
       </div>
     )
   }

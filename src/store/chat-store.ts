@@ -37,7 +37,7 @@ export interface ChatState {
   currentId: string | null
 
   init: () => Promise<void>
-  send: (text: string) => Promise<void>
+  send: (text: string, images?: string[]) => Promise<void>
   stop: () => void
   reset: () => void
   applySettings: (s: Settings) => void
@@ -213,13 +213,13 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     },
 
-    send: async (text: string) => {
+    send: async (text: string, images: string[] = []) => {
       const trimmed = text.trim()
-      if (!trimmed) return
+      if (!trimmed && images.length === 0) return
       const { settings } = get()
       const requestId = makeId('req')
 
-      const history = [...get().messages, userMessage(trimmed)]
+      const history = [...get().messages, userMessage(trimmed, images)]
       const placeholder = assistantPlaceholder()
       set({
         messages: [...history, placeholder],

@@ -1,5 +1,5 @@
 import type { ModelId } from '@/lib/models'
-import type { ModelMessage } from '@/lib/chat'
+import type { ContentPart, ModelMessage } from '@/lib/chat'
 import type { GenerateParams, LoadOptions } from './protocol'
 import type {
   GenerateCallbacks,
@@ -50,13 +50,16 @@ export class MockEngine implements LLMEngine {
     this.interrupted = false
     const started = Date.now()
 
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content ?? ''
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user')?.content
+    const lastText = textOf(lastUser)
+    const imageCount = imagesIn(lastUser)
     const reasoningText = params.reasoning
-      ? `The user said: "${truncate(lastUser, 60)}". This is a mocked engine, so I'll reply briefly.`
+      ? `The user said: "${truncate(lastText, 60)}". This is a mocked engine, so I'll reply briefly.`
       : ''
+    const seen = imageCount ? ` I can see ${imageCount} attached image${imageCount > 1 ? 's' : ''}.` : ''
     const answerText =
-      `You're running Crystal with a mocked model — everything stays on-device. ` +
-      `You said: "${truncate(lastUser, 80)}".`
+      `You're running Crystal with a mocked model — everything stays on-device.${seen} ` +
+      `You said: "${truncate(lastText, 80)}".`
 
     let tokens = 0
 
@@ -102,6 +105,20 @@ export class MockEngine implements LLMEngine {
 
 function tokenize(text: string): string[] {
   return text.match(/\S+\s*/g) ?? []
+}
+
+function textOf(content: string | ContentPart[] | undefined): string {
+  if (!content) return ''
+  if (typeof content === 'string') return content
+  return content
+    .filter((p): p is Extract<ContentPart, { type: 'text' }> => p.type === 'text')
+    .map((p) => p.text)
+    .join(' ')
+}
+
+function imagesIn(content: string | ContentPart[] | undefined): number {
+  if (!content || typeof content === 'string') return 0
+  return content.filter((p) => p.type === 'image').length
 }
 
 function truncate(s: string, n: number): string {
