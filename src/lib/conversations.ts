@@ -108,6 +108,12 @@ export async function removeConversation(id: string): Promise<Conversation[]> {
   return next
 }
 
+/** Drop every saved conversation. Writing [] (rather than removing the key) keeps the
+ * storage.onChanged path firing, so the side panel's history list updates live. */
+export async function clearConversations(): Promise<void> {
+  await writeList([])
+}
+
 export function subscribeConversations(cb: (list: Conversation[]) => void): () => void {
   if (!hasChromeStorage() || !chrome.storage.onChanged) return () => {}
   const handler = (

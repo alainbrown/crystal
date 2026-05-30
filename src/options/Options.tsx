@@ -4,6 +4,7 @@ import { MODELS, formatSize, getModel } from '@/lib/models'
 import { Dropdown, type DropdownOption } from '@/components/Dropdown'
 import { useSettings } from '@/hooks/useSettings'
 import { useApplyTheme } from '@/hooks/useApplyTheme'
+import { clearConversations } from '@/lib/conversations'
 import { Section, Segmented, Slider, Toggle } from './components/controls'
 
 const NAV = [
@@ -37,10 +38,8 @@ export function Options() {
 
   useApplyTheme(settings.theme)
 
-  function clearHistory() {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      void chrome.storage.local.remove('crystal.conversation')
-    }
+  async function clearHistory() {
+    await clearConversations()
     setCleared(true)
     setTimeout(() => setCleared(false), 2000)
   }

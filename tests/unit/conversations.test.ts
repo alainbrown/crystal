@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
+  clearConversations,
   loadConversations,
   normalizeList,
   removeConversation,
@@ -71,5 +72,12 @@ describe('save/load/remove (in-memory fallback)', () => {
     const after = await removeConversation('a')
     expect(after.map((c) => c.id)).toEqual(['b'])
     expect((await loadConversations()).map((c) => c.id)).toEqual(['b'])
+  })
+
+  it('clears every conversation', async () => {
+    await saveConversation(conv('a', 100))
+    await saveConversation(conv('b', 200))
+    await clearConversations()
+    expect(await loadConversations()).toEqual([])
   })
 })
