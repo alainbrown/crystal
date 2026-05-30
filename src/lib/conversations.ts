@@ -1,5 +1,5 @@
 import { isModelId, DEFAULT_MODEL_ID } from './models'
-import type { Conversation, ChatMessage, Role } from './chat'
+import type { Conversation, ChatMessage, PageContext, Role } from './chat'
 
 // One key holds the whole list (newest first). chrome.storage.local is ~10 MB without
 // `unlimitedStorage` (which we don't request), so cap the list and prune the oldest
@@ -24,13 +24,30 @@ function normalizeMessage(raw: unknown): ChatMessage | null {
   const images = Array.isArray(m.images)
     ? m.images.filter((x): x is string => typeof x === 'string')
     : undefined
+  const contexts = Array.isArray(m.contexts)
+    ? m.contexts.map(normalizeContext).filter((c): c is PageContext => c !== null)
+    : undefined
   return {
     id: typeof m.id === 'string' ? m.id : `m_${Math.round(Number(m.createdAt) || 0)}`,
     role: m.role as Role,
     content: m.content,
     images: images && images.length ? images : undefined,
+    contexts: contexts && contexts.length ? contexts : undefined,
     reasoning: typeof m.reasoning === 'string' ? m.reasoning : undefined,
     createdAt: typeof m.createdAt === 'number' ? m.createdAt : 0,
+  }
+}
+
+function normalizeContext(raw: unknown): PageContext | null {
+  if (!raw || typeof raw !== 'object') return null
+  const c = raw as Record<string, unknown>
+  if (typeof c.text !== 'string') return null
+  return {
+    title: typeof c.title === 'string' ? c.title : '',
+    url: typeof c.url === 'string' ? c.url : '',
+    text: c.text,
+    words: typeof c.words === 'number' ? c.words : 0,
+    truncated: c.truncated === true,
   }
 }
 

@@ -1,6 +1,7 @@
 import { env } from '@huggingface/transformers'
+import extractScript from '@/content/extract?script'
 import { TransformersEngine } from '@/worker/transformers-engine'
-import { queueCapture, type CaptureRect } from '@/lib/capture'
+import { queueDrop, type CaptureRect } from '@/lib/capture'
 import type { LLMEngine } from '@/worker/engine'
 import type { LoadOptions, RequestMessage, ResponseMessage } from '@/worker/protocol'
 
@@ -9,6 +10,7 @@ env.allowLocalModels = false
 const ROOT_MENU_ID = 'crystal-capture'
 const SHOT_MENU_ID = 'crystal-screenshot'
 const REGION_MENU_ID = 'crystal-region'
+const PAGETEXT_MENU_ID = 'crystal-pagetext'
 
 // Context menus don't survive an extension update and aren't created on browser
 // startup, so (re)register on both. removeAll first to avoid a duplicate-id throw.
@@ -29,6 +31,12 @@ function registerMenus(): void {
       id: REGION_MENU_ID,
       parentId: ROOT_MENU_ID,
       title: 'Select a region…',
+      contexts: ['page', 'selection', 'image', 'link'],
+    })
+    chrome.contextMenus.create({
+      id: PAGETEXT_MENU_ID,
+      parentId: ROOT_MENU_ID,
+      title: 'Send page text',
       contexts: ['page', 'selection', 'image', 'link'],
     })
   })
@@ -54,6 +62,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (tab?.windowId === undefined || tab.id === undefined) return
   if (info.menuItemId === SHOT_MENU_ID) void captureToPanel(tab.windowId, tab.id, false)
   else if (info.menuItemId === REGION_MENU_ID) void captureToPanel(tab.windowId, tab.id, true)
+  else if (info.menuItemId === PAGETEXT_MENU_ID) void sendPageText(tab.windowId, tab.id)
 })
 
 async function captureToPanel(windowId: number, tabId: number, region: boolean): Promise<void> {
@@ -73,9 +82,49 @@ async function captureToPanel(windowId: number, tabId: number, region: boolean):
     }
 
     const url = await chrome.tabs.captureVisibleTab(windowId, { format: 'jpeg', quality: 90 })
-    await queueCapture({ url, rect })
+    await queueDrop({ kind: 'image', url, rect })
   } catch (err) {
     console.error('[crystal] capture failed:', err)
+  }
+}
+
+interface PageTextPayload {
+  title: string
+  url: string
+  text: string
+}
+
+// Inject the Readability extractor (a bundled content script) and wait for it to message
+// the result back. activeTab from the context-menu click covers the injection; no host
+// permission. Resolves null on timeout or a page where injection is disallowed.
+function runExtractor(tabId: number): Promise<PageTextPayload | null> {
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = (value: PageTextPayload | null) => {
+      if (settled) return
+      settled = true
+      chrome.runtime.onMessage.removeListener(listener)
+      resolve(value)
+    }
+    const listener = (msg: unknown, sender: chrome.runtime.MessageSender) => {
+      const m = msg as { type?: string; payload?: PageTextPayload }
+      if (m?.type === 'crystal-page-text' && sender.tab?.id === tabId) finish(m.payload ?? null)
+    }
+    chrome.runtime.onMessage.addListener(listener)
+    chrome.scripting
+      .executeScript({ target: { tabId }, files: [extractScript] })
+      .catch(() => finish(null))
+    setTimeout(() => finish(null), 10_000)
+  })
+}
+
+async function sendPageText(windowId: number, tabId: number): Promise<void> {
+  try {
+    await chrome.sidePanel.open({ windowId })
+    const payload = await runExtractor(tabId)
+    if (payload && payload.text.trim()) await queueDrop({ kind: 'pageText', ...payload })
+  } catch (err) {
+    console.error('[crystal] page text extraction failed:', err)
   }
 }
 

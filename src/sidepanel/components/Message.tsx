@@ -7,6 +7,15 @@ export function Message({ message }: { message: ChatMessage }) {
       <div>
         <div className="lbl r">you</div>
         <div className="bubble from-user">
+          {message.contexts?.length ? (
+            <div className="bubble-contexts">
+              {message.contexts.map((c, i) => (
+                <span className="bubble-ctx" key={i} title={c.url}>
+                  📄 {c.title}
+                </span>
+              ))}
+            </div>
+          ) : null}
           {message.images?.length ? (
             <div className="bubble-images">
               {message.images.map((src, i) => (

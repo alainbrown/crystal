@@ -7,6 +7,7 @@ import {
   userMessage,
   type ChatMessage,
   type Conversation,
+  type PageContext,
 } from '@/lib/chat'
 import { type ModelId } from '@/lib/models'
 import {
@@ -37,7 +38,7 @@ export interface ChatState {
   currentId: string | null
 
   init: () => Promise<void>
-  send: (text: string, images?: string[]) => Promise<void>
+  send: (text: string, images?: string[], contexts?: PageContext[]) => Promise<void>
   stop: () => void
   reset: () => void
   applySettings: (s: Settings) => void
@@ -213,13 +214,13 @@ export const useChatStore = create<ChatState>((set, get) => {
       }
     },
 
-    send: async (text: string, images: string[] = []) => {
+    send: async (text: string, images: string[] = [], contexts: PageContext[] = []) => {
       const trimmed = text.trim()
-      if (!trimmed && images.length === 0) return
+      if (!trimmed && images.length === 0 && contexts.length === 0) return
       const { settings } = get()
       const requestId = makeId('req')
 
-      const history = [...get().messages, userMessage(trimmed, images)]
+      const history = [...get().messages, userMessage(trimmed, { images, contexts })]
       const placeholder = assistantPlaceholder()
       set({
         messages: [...history, placeholder],
