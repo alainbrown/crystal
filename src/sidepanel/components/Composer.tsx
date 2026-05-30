@@ -1,10 +1,12 @@
 import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useChatStore } from '@/store/chat-store'
 import { fileToDataURL } from '@/lib/images'
+import { pdfToImages } from '@/lib/pdf'
 
 export function Composer({ value: controlledValue }: { value?: string } = {}) {
   const [localText, setText] = useState('')
   const [images, setImages] = useState<string[]>([])
+  const [note, setNote] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
   // `value`, when provided, drives the field from outside (the Remotion demo
   // types into it deterministically). Production renders <Composer/> with no
@@ -21,14 +23,33 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
     const pending = images
     setText('')
     setImages([])
+    setNote('')
     void send(text, pending)
   }
 
+  // A PDF has no image modality the model can read, so we rasterize its pages to images
+  // (lib/pdf.ts) and treat them exactly like uploaded photos. Images are read directly.
   async function onPick(e: ChangeEvent<HTMLInputElement>) {
-    const picked = Array.from(e.target.files ?? []).filter((f) => f.type.startsWith('image/'))
+    const picked = Array.from(e.target.files ?? [])
     e.target.value = '' // let the same file be re-picked after removal
-    const urls = await Promise.all(picked.map((f) => fileToDataURL(f)))
-    setImages((prev) => [...prev, ...urls])
+    setNote('')
+    try {
+      const added: string[] = []
+      const notes: string[] = []
+      for (const file of picked) {
+        if (file.type === 'application/pdf') {
+          const { images: pages, totalPages, truncated } = await pdfToImages(file)
+          added.push(...pages)
+          if (truncated) notes.push(`${file.name}: added first ${pages.length} of ${totalPages} pages`)
+        } else if (file.type.startsWith('image/')) {
+          added.push(await fileToDataURL(file))
+        }
+      }
+      if (added.length) setImages((prev) => [...prev, ...added])
+      if (notes.length) setNote(notes.join(' · '))
+    } catch (err) {
+      setNote(err instanceof Error ? `Couldn't read that file: ${err.message}` : "Couldn't read that file")
+    }
   }
 
   function removeImage(index: number) {
@@ -44,6 +65,7 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
 
   return (
     <div className="composer">
+      {note ? <div className="attach-note">{note}</div> : null}
       {images.length > 0 ? (
         <div className="attachments">
           {images.map((src, i) => (
@@ -63,8 +85,8 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
       <div className="field">
         <button
           className="plusbtn"
-          title="Attach image"
-          aria-label="Attach image"
+          title="Attach image or PDF"
+          aria-label="Attach image or PDF"
           onClick={() => fileRef.current?.click()}
         >
           +
@@ -72,7 +94,7 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
         <input
           ref={fileRef}
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           multiple
           hidden
           onChange={onPick}
