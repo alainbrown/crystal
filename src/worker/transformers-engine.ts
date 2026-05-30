@@ -1,15 +1,14 @@
 import {
-  streamText,
-  wrapLanguageModel,
-  extractReasoningMiddleware,
-  type ModelMessage as AiMessage,
-} from 'ai'
-import {
-  transformersJS,
-  type TransformersJSLanguageModel,
-  type TransformersJSModelSettings,
-} from '@browser-ai/transformers-js'
-import { env, type ProgressInfo } from '@huggingface/transformers'
+  env,
+  AutoProcessor,
+  AutoModelForImageTextToText,
+  TextStreamer,
+  StoppingCriteriaList,
+  InterruptableStoppingCriteria,
+  type ProgressInfo,
+  type Processor,
+  type PreTrainedModel,
+} from '@huggingface/transformers'
 
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
@@ -25,19 +24,30 @@ import type {
 env.allowLocalModels = false
 env.useBrowserCache = true
 
-type DType = NonNullable<TransformersJSModelSettings['dtype']>
+// Anti-loop default. transformers.js applies this during generation; without it small
+// models loop (Qwen's recommended range is ~1.05–1.15). Not user-configurable yet.
+const REPETITION_PENALTY = 1.1
 
-function dtypeFor(precision: Precision): DType {
+const CLOSE_THINK = '</think>'
+
+type DTypeMap = Record<'embed_tokens' | 'vision_encoder' | 'decoder_model_merged', Precision | 'fp16'>
+
+function dtypeFor(precision: Precision): DTypeMap {
   return {
     embed_tokens: precision,
     vision_encoder: 'fp16',
     decoder_model_merged: precision,
-  } as DType
+  }
 }
 
+// We talk to transformers.js directly rather than through an AI SDK provider: the
+// community adapter dropped two options the Qwen3.5 template/engine need — it never
+// forwarded enable_thinking:false (so "reasoning off" still produced, and leaked, a
+// think block) nor repetition_penalty (so small models looped). Both are set below.
 export class TransformersEngine implements LLMEngine {
-  private model: TransformersJSLanguageModel | null = null
-  private controller: AbortController | null = null
+  private model: PreTrainedModel | null = null
+  private processor: Processor | null = null
+  private readonly stopper = new InterruptableStoppingCriteria()
   private aborted = false
 
   async load(modelId: ModelId, options: LoadOptions, cb: LoadCallbacks): Promise<void> {
@@ -46,7 +56,7 @@ export class TransformersEngine implements LLMEngine {
       ? ['webgpu', 'wasm']
       : ['webgpu']
 
-    const rawInitProgressCallback = (p: ProgressInfo) => {
+    const progress_callback = (p: ProgressInfo) => {
       if (p.status === 'progress' && p.file && p.total) {
         cb.onProgress({
           file: p.file,
@@ -60,16 +70,20 @@ export class TransformersEngine implements LLMEngine {
     let lastErr: unknown
     for (const device of devices) {
       try {
-        const model = transformersJS(modelId, {
-          device,
-          dtype,
-          // Qwen3.5 is multimodal: this routes input building through the
-          // documented two-step path (apply_chat_template → text → processor(text)),
-          // rather than the return_dict path that yields invalid inputs for this model.
-          isVisionModel: true,
-          rawInitProgressCallback,
-        })
-        await model.createSessionWithProgress()
+        // Qwen3.5 is a multimodal (VL) model: load the image-text-to-text model plus its
+        // processor. Inference here is text-only, but the processor's two-step path
+        // (apply_chat_template → string → processor(text)) is the documented way to build
+        // valid inputs for this model. Running in the service worker lets onnxruntime-web
+        // resolve its WebGPU backend as same-origin assets (no blob: worker → CSP-safe).
+        const [processor, model] = await Promise.all([
+          AutoProcessor.from_pretrained(modelId, { progress_callback }),
+          AutoModelForImageTextToText.from_pretrained(modelId, {
+            dtype,
+            device,
+            progress_callback,
+          } as Parameters<typeof AutoModelForImageTextToText.from_pretrained>[1]),
+        ])
+        this.processor = processor
         this.model = model
         return
       } catch (err) {
@@ -84,55 +98,101 @@ export class TransformersEngine implements LLMEngine {
     params: GenerateParams,
     cb: GenerateCallbacks,
   ): Promise<GenerateResult> {
-    if (!this.model) throw new Error('Model not loaded')
-    this.aborted = false
-    this.controller = new AbortController()
+    const { model, processor } = this
+    if (!model || !processor) throw new Error('Model not loaded')
+    const tokenizer = processor.tokenizer
+    if (!tokenizer) throw new Error('Processor has no tokenizer')
 
-    // The framework separates reasoning from the answer. The Qwen3.5 chat template
-    // opens the <think> block in the prompt itself, so the generated stream starts
-    // mid-reasoning with no opening tag — hence startWithReasoning tracks `reasoning`.
-    const wrapped = wrapLanguageModel({
-      model: this.model,
-      middleware: extractReasoningMiddleware({
-        tagName: 'think',
-        startWithReasoning: params.reasoning,
-      }),
-    })
+    this.aborted = false
+    this.stopper.reset()
+
+    // enable_thinking drives the Qwen3.5 template: true pre-opens <think> (the model
+    // reasons, emits </think>, then answers); false emits a pre-closed <think></think>
+    // so the model answers directly with no reasoning.
+    const text = processor.apply_chat_template(messages, {
+      add_generation_prompt: true,
+      enable_thinking: params.reasoning,
+    } as Parameters<Processor['apply_chat_template']>[1]) as string
+    const inputs = await processor(text)
 
     let reasoning = ''
     let answer = ''
     let tokens = 0
     let started = 0
 
-    const result = streamText({
-      model: wrapped,
-      messages: messages as AiMessage[],
-      temperature: params.temperature,
-      maxOutputTokens: params.maxTokens,
-      abortSignal: this.controller.signal,
-      providerOptions: { 'transformers-js': { enableThinking: params.reasoning } },
+    // Split reasoning from answer. With thinking on, the prompt pre-opened <think>, so
+    // the generated stream starts mid-reasoning; everything up to the first </think> is
+    // reasoning, the rest is the answer. With thinking off, the whole stream is answer.
+    // `carry` holds back a possible </think> straddling a chunk boundary.
+    let mode: 'reasoning' | 'answer' = params.reasoning ? 'reasoning' : 'answer'
+    let carry = ''
+
+    const emit = (chunk: string) => {
+      if (mode === 'answer') {
+        answer += chunk
+        cb.onToken(chunk, 'answer')
+        return
+      }
+      carry += chunk
+      const idx = carry.indexOf(CLOSE_THINK)
+      if (idx === -1) {
+        const safe = carry.length - (CLOSE_THINK.length - 1)
+        if (safe > 0) {
+          const out = carry.slice(0, safe)
+          carry = carry.slice(safe)
+          reasoning += out
+          if (params.reasoning) cb.onToken(out, 'reasoning')
+        }
+        return
+      }
+      const before = carry.slice(0, idx)
+      const after = carry.slice(idx + CLOSE_THINK.length)
+      if (before) {
+        reasoning += before
+        if (params.reasoning) cb.onToken(before, 'reasoning')
+      }
+      mode = 'answer'
+      carry = ''
+      if (after) {
+        answer += after
+        cb.onToken(after, 'answer')
+      }
+    }
+
+    const streamer = new TextStreamer(tokenizer, {
+      skip_prompt: true,
+      skip_special_tokens: true,
+      callback_function: (t: string) => {
+        if (this.aborted || !t) return
+        if (!started) started = Date.now()
+        tokens++
+        emit(t)
+      },
     })
 
+    const stopping_criteria = new StoppingCriteriaList()
+    stopping_criteria.extend([this.stopper])
+
     try {
-      for await (const part of result.fullStream) {
-        if (part.type === 'reasoning-delta') {
-          if (!started) started = Date.now()
-          tokens++
-          reasoning += part.text
-          if (params.reasoning) cb.onToken(part.text, 'reasoning')
-        } else if (part.type === 'text-delta') {
-          if (!started) started = Date.now()
-          tokens++
-          answer += part.text
-          cb.onToken(part.text, 'answer')
-        } else if (part.type === 'error') {
-          throw part.error
-        }
-      }
+      await model.generate({
+        ...inputs,
+        max_new_tokens: params.maxTokens,
+        temperature: params.temperature,
+        do_sample: params.temperature > 0,
+        repetition_penalty: REPETITION_PENALTY,
+        streamer,
+        stopping_criteria,
+        return_dict_in_generate: true,
+      } as Parameters<PreTrainedModel['generate']>[0])
     } catch (err) {
       if (!this.aborted) throw err
-    } finally {
-      this.controller = null
+    }
+
+    // No closing tag ever arrived (e.g. the model never left the think block): flush
+    // whatever is still buffered so it isn't silently dropped.
+    if (mode === 'reasoning' && carry) {
+      reasoning += carry
+      if (params.reasoning) cb.onToken(carry, 'reasoning')
     }
 
     const elapsedMs = Math.max(1, Date.now() - (started || Date.now()))
@@ -149,11 +209,13 @@ export class TransformersEngine implements LLMEngine {
 
   interrupt(): void {
     this.aborted = true
-    this.controller?.abort()
+    this.stopper.interrupt()
   }
 
   dispose(): void {
     this.interrupt()
+    void this.model?.dispose()
     this.model = null
+    this.processor = null
   }
 }
