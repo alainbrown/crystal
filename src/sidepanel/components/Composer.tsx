@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useChatStore } from '@/store/chat-store'
-import { fileToDataURL, downscaleDataUrl } from '@/lib/images'
+import { fileToDataURL, downscaleDataUrl, cropDataUrl } from '@/lib/images'
 import { pdfToImages } from '@/lib/pdf'
 import { subscribePendingCapture, takePendingCapture } from '@/lib/capture'
 
@@ -25,9 +25,19 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
   useEffect(() => {
     let active = true
     async function drain() {
-      const url = await takePendingCapture()
-      if (!url) return
-      const small = await downscaleDataUrl(url)
+      const capture = await takePendingCapture()
+      if (!capture) return
+      const { url, rect } = capture
+      // A region capture carries a box in CSS px; scale by dpr to the screenshot's own
+      // pixels and crop. A plain screenshot is just downscaled like an upload.
+      const small = rect
+        ? await cropDataUrl(url, {
+            x: rect.x * rect.dpr,
+            y: rect.y * rect.dpr,
+            width: rect.width * rect.dpr,
+            height: rect.height * rect.dpr,
+          })
+        : await downscaleDataUrl(url)
       if (active) setImages((prev) => [...prev, small])
     }
     void drain()

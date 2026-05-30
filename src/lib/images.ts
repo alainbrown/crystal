@@ -17,6 +17,35 @@ export async function downscaleDataUrl(dataUrl: string, maxEdge = MAX_IMAGE_EDGE
   return bitmapToDataURL(await createImageBitmap(blob), maxEdge)
 }
 
+/** Crop a data URL to a region (in the image's own pixels), then downscale like the
+ * rest. Used by the region-selection tool after the page reports the selected box. */
+export async function cropDataUrl(
+  dataUrl: string,
+  region: { x: number; y: number; width: number; height: number },
+  maxEdge = MAX_IMAGE_EDGE,
+): Promise<string> {
+  const blob = await (await fetch(dataUrl)).blob()
+  const bitmap = await createImageBitmap(blob)
+  try {
+    const sx = Math.max(0, Math.min(bitmap.width - 1, Math.round(region.x)))
+    const sy = Math.max(0, Math.min(bitmap.height - 1, Math.round(region.y)))
+    const sw = Math.max(1, Math.min(bitmap.width - sx, Math.round(region.width)))
+    const sh = Math.max(1, Math.min(bitmap.height - sy, Math.round(region.height)))
+    const scale = Math.min(1, maxEdge / Math.max(sw, sh))
+    const dw = Math.max(1, Math.round(sw * scale))
+    const dh = Math.max(1, Math.round(sh * scale))
+    const canvas = document.createElement('canvas')
+    canvas.width = dw
+    canvas.height = dh
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Canvas 2D context unavailable')
+    ctx.drawImage(bitmap, sx, sy, sw, sh, 0, 0, dw, dh)
+    return canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+  } finally {
+    bitmap.close()
+  }
+}
+
 function bitmapToDataURL(bitmap: ImageBitmap, maxEdge: number): string {
   try {
     const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))

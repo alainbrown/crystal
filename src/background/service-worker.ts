@@ -1,20 +1,34 @@
 import { env } from '@huggingface/transformers'
 import { TransformersEngine } from '@/worker/transformers-engine'
-import { queueCapture } from '@/lib/capture'
+import { queueCapture, type CaptureRect } from '@/lib/capture'
 import type { LLMEngine } from '@/worker/engine'
 import type { LoadOptions, RequestMessage, ResponseMessage } from '@/worker/protocol'
 
 env.allowLocalModels = false
 
-const SCREENSHOT_MENU_ID = 'crystal-screenshot'
+const ROOT_MENU_ID = 'crystal-capture'
+const SHOT_MENU_ID = 'crystal-screenshot'
+const REGION_MENU_ID = 'crystal-region'
 
 // Context menus don't survive an extension update and aren't created on browser
 // startup, so (re)register on both. removeAll first to avoid a duplicate-id throw.
 function registerMenus(): void {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
-      id: SCREENSHOT_MENU_ID,
-      title: 'Send screenshot to Crystal',
+      id: ROOT_MENU_ID,
+      title: 'Send to Crystal',
+      contexts: ['page', 'selection', 'image', 'link'],
+    })
+    chrome.contextMenus.create({
+      id: SHOT_MENU_ID,
+      parentId: ROOT_MENU_ID,
+      title: 'Screenshot visible area',
+      contexts: ['page', 'selection', 'image', 'link'],
+    })
+    chrome.contextMenus.create({
+      id: REGION_MENU_ID,
+      parentId: ROOT_MENU_ID,
+      title: 'Select a region…',
       contexts: ['page', 'selection', 'image', 'link'],
     })
   })
@@ -34,23 +48,94 @@ chrome.action.onClicked.addListener((tab) => {
   }
 })
 
-// A context-menu click grants activeTab for the clicked tab, which is exactly what
-// captureVisibleTab needs — no broad host permission. Open the panel first (still
-// inside the user gesture, before any await), then capture and hand the shot off via
-// chrome.storage.session for the composer to pick up.
+// A context-menu click grants activeTab for the clicked tab — exactly what
+// captureVisibleTab and scripting.executeScript need, with no broad host permission.
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== SCREENSHOT_MENU_ID || tab?.windowId === undefined) return
-  void captureToPanel(tab.windowId)
+  if (tab?.windowId === undefined || tab.id === undefined) return
+  if (info.menuItemId === SHOT_MENU_ID) void captureToPanel(tab.windowId, tab.id, false)
+  else if (info.menuItemId === REGION_MENU_ID) void captureToPanel(tab.windowId, tab.id, true)
 })
 
-async function captureToPanel(windowId: number): Promise<void> {
+async function captureToPanel(windowId: number, tabId: number, region: boolean): Promise<void> {
   try {
+    // Open the panel first, while still inside the click's user gesture (before any
+    // await), so the gesture isn't spent by the time we'd want it.
     await chrome.sidePanel.open({ windowId })
-    const dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: 'jpeg', quality: 85 })
-    await queueCapture(dataUrl)
+
+    let rect: CaptureRect | undefined
+    if (region) {
+      // Inject a one-shot selection overlay; it resolves the drawn box (CSS px + dpr)
+      // and removes itself before we capture. Null means cancelled / restricted page.
+      const [injection] = await chrome.scripting.executeScript({ target: { tabId }, func: regionPicker })
+      const picked = injection?.result as CaptureRect | null | undefined
+      if (!picked) return
+      rect = picked
+    }
+
+    const url = await chrome.tabs.captureVisibleTab(windowId, { format: 'jpeg', quality: 90 })
+    await queueCapture({ url, rect })
   } catch (err) {
-    console.error('[crystal] screenshot capture failed:', err)
+    console.error('[crystal] capture failed:', err)
   }
+}
+
+// Runs in the page (injected via executeScript), so it must be self-contained and use
+// only page globals. Draws a rubber-band rectangle and resolves it; removes itself and
+// waits two frames before resolving so the overlay isn't in the captured screenshot.
+function regionPicker(): Promise<CaptureRect | null> {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div')
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;cursor:crosshair;'
+    const box = document.createElement('div')
+    box.style.cssText =
+      'position:fixed;border:2px solid #fff;box-shadow:0 0 0 100vmax rgba(0,0,0,0.4);display:none;pointer-events:none;'
+    overlay.appendChild(box)
+    document.body.appendChild(overlay)
+
+    let sx = 0
+    let sy = 0
+    let drawing = false
+    const finish = (rect: CaptureRect | null) => {
+      overlay.remove()
+      document.removeEventListener('keydown', onKey)
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(rect)))
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') finish(null)
+    }
+    overlay.addEventListener('mousedown', (e: MouseEvent) => {
+      drawing = true
+      sx = e.clientX
+      sy = e.clientY
+      box.style.display = 'block'
+      box.style.left = `${sx}px`
+      box.style.top = `${sy}px`
+      box.style.width = '0px'
+      box.style.height = '0px'
+    })
+    overlay.addEventListener('mousemove', (e: MouseEvent) => {
+      if (!drawing) return
+      box.style.left = `${Math.min(sx, e.clientX)}px`
+      box.style.top = `${Math.min(sy, e.clientY)}px`
+      box.style.width = `${Math.abs(e.clientX - sx)}px`
+      box.style.height = `${Math.abs(e.clientY - sy)}px`
+    })
+    overlay.addEventListener('mouseup', (e: MouseEvent) => {
+      if (!drawing) return
+      drawing = false
+      const width = Math.abs(e.clientX - sx)
+      const height = Math.abs(e.clientY - sy)
+      if (width < 5 || height < 5) return finish(null) // treat a tap as cancel
+      finish({
+        x: Math.min(sx, e.clientX),
+        y: Math.min(sy, e.clientY),
+        width,
+        height,
+        dpr: window.devicePixelRatio || 1,
+      })
+    })
+    document.addEventListener('keydown', onKey)
+  })
 }
 
 let engine: LLMEngine | null = null
