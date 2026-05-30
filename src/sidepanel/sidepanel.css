@@ -21,7 +21,14 @@ body { background: var(--bg); font-size: 13px; }
 .panel-header .logo {
   width: 28px; height: 28px; border-radius: 8px; flex: none; display: block;
 }
-.panel-header .brand { flex: none; font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+.panel-header .newchat {
+  flex: none; display: flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 6px 11px 6px 9px; border-radius: 999px; font-size: 13px; font-weight: 800;
+  letter-spacing: -0.2px; color: var(--accent); background: var(--accent-soft);
+  border: 1px solid transparent; transition: 0.15s;
+}
+.panel-header .newchat:hover { border-color: var(--accent); }
+.panel-header .newchat .newchat-plus { font-size: 14px; line-height: 1; margin-top: -1px; }
 .panel-header .dropdown { flex: 1; min-width: 0; }
 .panel-header .dd-btn { padding: 6px 9px; border-radius: 10px; }
 .panel-header .dd-btn .lbl b { font-size: 12.5px; }

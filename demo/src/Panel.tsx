@@ -61,8 +61,11 @@ export function Panel() {
   return (
     <div className="panel demo-panel" data-theme="light" ref={panelRef}>
       <header className="panel-header">
-        <img className="logo" src={logoUrl} alt="" />
-        <div className="brand">Crystal</div>
+        <img className="logo" src={logoUrl} alt="Crystal" />
+        <button className="newchat" title="New chat" aria-label="New chat">
+          <span className="newchat-plus" aria-hidden="true">＋</span>
+          New
+        </button>
         <Dropdown
           value={t.modelId}
           options={OPTIONS}
