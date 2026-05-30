@@ -1,6 +1,6 @@
 {
   "name": "crystal",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A private, on-device AI chat panel for Chrome. Runs Qwen3.5 entirely in the browser via WebGPU.",
   "type": "module",
   "private": true,
