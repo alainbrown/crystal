@@ -7,7 +7,17 @@ export const MAX_IMAGE_EDGE = 1024
 const JPEG_QUALITY = 0.85
 
 export async function fileToDataURL(file: File, maxEdge = MAX_IMAGE_EDGE): Promise<string> {
-  const bitmap = await createImageBitmap(file)
+  return bitmapToDataURL(await createImageBitmap(file), maxEdge)
+}
+
+/** Downscale an existing data URL (e.g. a full-resolution tab screenshot) the same way
+ * uploaded files are, so captures stay within the same size/token budget. */
+export async function downscaleDataUrl(dataUrl: string, maxEdge = MAX_IMAGE_EDGE): Promise<string> {
+  const blob = await (await fetch(dataUrl)).blob()
+  return bitmapToDataURL(await createImageBitmap(blob), maxEdge)
+}
+
+function bitmapToDataURL(bitmap: ImageBitmap, maxEdge: number): string {
   try {
     const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
     const width = Math.max(1, Math.round(bitmap.width * scale))

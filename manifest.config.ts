@@ -38,7 +38,7 @@ export default defineManifest({
     default_path: 'src/sidepanel/index.html',
   },
   options_page: 'src/options/index.html',
-  permissions: ['sidePanel', 'storage'],
+  permissions: ['sidePanel', 'storage', 'activeTab', 'contextMenus'],
   host_permissions: HF_HOSTS,
   content_security_policy: {
     extension_pages:

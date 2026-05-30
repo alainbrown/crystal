@@ -1,7 +1,8 @@
-import { useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useChatStore } from '@/store/chat-store'
-import { fileToDataURL } from '@/lib/images'
+import { fileToDataURL, downscaleDataUrl } from '@/lib/images'
 import { pdfToImages } from '@/lib/pdf'
+import { subscribePendingCapture, takePendingCapture } from '@/lib/capture'
 
 export function Composer({ value: controlledValue }: { value?: string } = {}) {
   const [localText, setText] = useState('')
@@ -17,6 +18,25 @@ export function Composer({ value: controlledValue }: { value?: string } = {}) {
   const status = useChatStore((s) => s.status)
   const generating = status === 'generating'
   const canSend = (text.trim().length > 0 || images.length > 0) && !generating
+
+  // A "Send screenshot to Crystal" context-menu click captures the tab in the service
+  // worker and queues it; drain it here whether the panel was already open or the click
+  // just opened it. Downscaled like uploaded files so captures share the size budget.
+  useEffect(() => {
+    let active = true
+    async function drain() {
+      const url = await takePendingCapture()
+      if (!url) return
+      const small = await downscaleDataUrl(url)
+      if (active) setImages((prev) => [...prev, small])
+    }
+    void drain()
+    const unsubscribe = subscribePendingCapture(() => void drain())
+    return () => {
+      active = false
+      unsubscribe()
+    }
+  }, [])
 
   function submit() {
     if (!canSend) return
