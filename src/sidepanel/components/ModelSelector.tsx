@@ -8,6 +8,7 @@ const OPTIONS: DropdownOption[] = MODELS.map((m) => ({
   icon: m.icon,
   title: `${m.family} · ${m.label}`,
   sub: `${m.blurb} · ~${formatSize(m.approxDownloadMB)}`,
+  triggerLabel: `${m.family} ${m.label}`,
 }))
 
 export function ModelSelector() {

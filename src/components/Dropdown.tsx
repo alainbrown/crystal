@@ -5,6 +5,8 @@ export interface DropdownOption {
   icon?: string
   title: string
   sub?: string
+  /** Compact single-line label shown on the trigger button (falls back to title/sub). */
+  triggerLabel?: string
 }
 
 export function Dropdown({
@@ -64,8 +66,14 @@ export function Dropdown({
       >
         {current?.icon ? <span className="mi">{current.icon}</span> : null}
         <span className="lbl">
-          <b>{current?.title}</b>
-          {current?.sub ? <small>{current.sub}</small> : null}
+          {current?.triggerLabel ? (
+            <b>{current.triggerLabel}</b>
+          ) : (
+            <>
+              <b>{current?.title}</b>
+              {current?.sub ? <small>{current.sub}</small> : null}
+            </>
+          )}
         </span>
         <span className="chev" aria-hidden="true">
           ▾
