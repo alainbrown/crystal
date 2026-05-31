@@ -234,6 +234,7 @@ async function handle(
         post({ type: 'status', status: 'loading' })
         await getEngine().load(msg.modelId, msg.options, {
           onProgress: (data) => post({ type: 'progress', data }),
+          onPhase: (phase) => post({ type: 'phase', phase }),
         })
         loaded = { modelId: msg.modelId, key }
         post({ type: 'ready', modelId: msg.modelId })

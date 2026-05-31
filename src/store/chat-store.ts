@@ -23,11 +23,12 @@ import {
   subscribeConversations,
 } from '@/lib/conversations'
 import { WorkerClient } from '@/lib/worker-client'
-import type { EngineStatus, FileProgress, GenStats } from '@/worker/protocol'
+import type { EngineStatus, FileProgress, GenStats, LoadPhase } from '@/worker/protocol'
 
 export interface ChatState {
   status: EngineStatus
   progress: FileProgress | null
+  loadPhase: LoadPhase | null
   loadedModelId: ModelId | null
   messages: ChatMessage[]
   stats: GenStats | null
@@ -101,13 +102,19 @@ export const useChatStore = create<ChatState>((set, get) => {
     switch (msg.type) {
       case 'status':
         set({ status: msg.status })
+        // Loading just began: show the "checking" stage and drop any stale bar from a
+        // previous load until the engine reports the first real phase.
+        if (msg.status === 'loading') set({ loadPhase: 'checking', progress: null })
         if (msg.status === 'error' && msg.detail) set({ error: msg.detail })
+        break
+      case 'phase':
+        set({ loadPhase: msg.phase })
         break
       case 'progress':
         set({ progress: msg.data })
         break
       case 'ready':
-        set({ loadedModelId: msg.modelId, progress: null })
+        set({ loadedModelId: msg.modelId, progress: null, loadPhase: null })
         break
       case 'token':
         if (msg.requestId !== get().activeRequestId) return
@@ -181,6 +188,7 @@ export const useChatStore = create<ChatState>((set, get) => {
   return {
     status: 'idle',
     progress: null,
+    loadPhase: null,
     loadedModelId: null,
     messages: [],
     stats: null,

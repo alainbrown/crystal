@@ -1,9 +1,10 @@
 import type { ModelId } from '@/lib/models'
 import type { ModelMessage } from '@/lib/chat'
-import type { FileProgress, GenStats, GenerateParams, LoadOptions } from './protocol'
+import type { FileProgress, GenStats, GenerateParams, LoadOptions, LoadPhase } from './protocol'
 
 export interface LoadCallbacks {
   onProgress(p: FileProgress): void
+  onPhase?(phase: LoadPhase): void
 }
 
 export interface GenerateCallbacks {

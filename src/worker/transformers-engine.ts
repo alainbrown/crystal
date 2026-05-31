@@ -88,14 +88,57 @@ export class TransformersEngine implements LLMEngine {
       ? ['webgpu', 'wasm']
       : ['webgpu']
 
+    // transformers.js streams a per-file lifecycle: initiate → (download → progress…) →
+    // done. We turn that into coarse phases for the UI. `pending` tracks files we've seen
+    // start but not finish; when it drains we've left the network and entered the build:
+    // `compiling` if anything actually downloaded, `cache` if every file was a cache hit
+    // (no progress events). We also aggregate bytes across files so the bar reflects the
+    // whole load instead of jumping with whichever file reported last.
+    const pending = new Set<string>()
+    const sizes = new Map<string, { loaded: number; total: number }>()
+    let sawDownload = false
+
+    const emitAggregate = () => {
+      let loaded = 0
+      let total = 0
+      for (const s of sizes.values()) {
+        loaded += s.loaded
+        total += s.total
+      }
+      if (total > 0) cb.onProgress({ file: '', loaded, total, progress: loaded / total })
+    }
+
     const progress_callback = (p: ProgressInfo) => {
-      if (p.status === 'progress' && p.file && p.total) {
-        cb.onProgress({
-          file: p.file,
-          loaded: p.loaded ?? 0,
-          total: p.total,
-          progress: (p.progress ?? 0) / 100,
-        })
+      switch (p.status) {
+        case 'initiate':
+          if (p.file) pending.add(p.file)
+          break
+        case 'download':
+          if (p.file) {
+            pending.add(p.file)
+            sawDownload = true
+          }
+          break
+        case 'progress':
+          if (p.file && p.total) {
+            sawDownload = true
+            pending.add(p.file)
+            sizes.set(p.file, { loaded: p.loaded ?? 0, total: p.total })
+            cb.onPhase?.('downloading')
+            emitAggregate()
+          }
+          break
+        case 'done':
+          if (p.file) {
+            pending.delete(p.file)
+            const s = sizes.get(p.file)
+            if (s) s.loaded = s.total // a finished file counts fully toward the bar
+          }
+          // Only flip to the post-download phase once every in-flight file is done, so an
+          // early file finishing mid-download doesn't flicker the label back and forth.
+          if (pending.size === 0) cb.onPhase?.(sawDownload ? 'compiling' : 'cache')
+          else emitAggregate()
+          break
       }
     }
 
