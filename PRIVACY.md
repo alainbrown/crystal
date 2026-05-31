@@ -36,8 +36,7 @@ on your machine and is removed if you uninstall the extension or clear its stora
 
 Crystal makes exactly one kind of outbound request: downloading the model weights it
 needs to run. These files are fetched from the **Hugging Face Hub** and its content
-delivery hosts (`huggingface.co`, `*.hf.co`, and the associated CDN domains listed in
-the extension's host permissions).
+delivery hosts (`huggingface.co`, `*.hf.co`, and the associated CDN domains).
 
 This download happens once per model; afterward the weights are served from the browser
 cache. The request retrieves files — it does **not** send your prompts, conversations,

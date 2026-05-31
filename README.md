@@ -127,8 +127,7 @@ builds all three.
 ## Privacy
 
 Everything runs locally. The only network traffic is the one-time model-weight download
-from the Hugging Face Hub (allowed via the extension's `host_permissions`). Your
-conversations never leave the browser.
+from the Hugging Face Hub. Your conversations never leave the browser.
 
 ## License
 

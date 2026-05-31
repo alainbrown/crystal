@@ -1,16 +1,6 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import pkg from './package.json'
 
-const HF_HOSTS = [
-  'https://huggingface.co/*',
-  'https://*.huggingface.co/*',
-  'https://*.hf.co/*',
-  'https://cdn-lfs.huggingface.co/*',
-  'https://cdn-lfs-us-1.hf.co/*',
-  'https://cdn-lfs-eu-1.hf.co/*',
-  'https://cas-bridge.xethub.hf.co/*',
-]
-
 export default defineManifest({
   manifest_version: 3,
   name: 'Crystal',
@@ -38,7 +28,6 @@ export default defineManifest({
   },
   options_page: 'src/options/index.html',
   permissions: ['sidePanel', 'storage', 'activeTab', 'contextMenus', 'scripting'],
-  host_permissions: HF_HOSTS,
   content_security_policy: {
     extension_pages:
       "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; worker-src 'self';",
