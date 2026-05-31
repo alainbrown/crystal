@@ -16,7 +16,6 @@ export default defineManifest({
   name: 'Crystal',
   version: pkg.version,
   description: pkg.description,
-  key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtXGtjtdObR7CoJjLgYQo0ZveZHxF+Ogxwyq21U6xfhie93yWjd18WWimmcryZP42zZArMcK6ASMaInJI6+XqtCShMn+m/n8Mv2BjFg2K6zFYHKltPXH+FwrLRzCcAfy4Ha2df9+1GCUauTUvt/ju73IMeTjVh3LeccTOl6hZ5r35wRTQnQ91/NRYbGEMxpUM7W2b8dUcPuBY/LS5FSMiIgotzIw0Lo/kPcxIWCviKO6k2dgXPRJCvQbkbFy/ek1m3zjFwsuc9C72jwucrVs00KBVeWbkh/a6P8ZQV+qxkQSh2l/eO26kkxGQkKXplG+y3DGzK9pL7hb7MhdOfxV7OwIDAQAB',
   icons: {
     '16': 'src/assets/icon-16.png',
     '48': 'src/assets/icon-48.png',
